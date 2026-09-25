@@ -1,0 +1,24 @@
+---
+import { cardSubtitle, TYPE_LABELS, type LoreEntity } from "../lib/lore";
+
+interface Props {
+  entity: LoreEntity;
+}
+
+const { entity } = Astro.props;
+const subtitle = cardSubtitle(entity);
+---
+
+<a
+  href={entity.href}
+  class="group block rounded-2xl border border-line bg-panel/80 p-5 transition hover:border-gold/50 hover:bg-panel"
+>
+  <div class="mb-3 flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.18em] text-dim">
+    <span>{TYPE_LABELS[entity.type]}</span>
+    {entity.status === "draft" && (
+      <span class="rounded-full border border-gold/40 px-2 py-0.5 text-[10px] text-gold">Черновик</span>
+    )}
+  </div>
+  <h2 class="font-display text-2xl text-gold-soft group-hover:text-gold">{entity.title}</h2>
+  {subtitle && <p class="mt-2 text-sm leading-6 text-dim">{subtitle}</p>}
+</a>

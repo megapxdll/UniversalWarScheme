@@ -1,0 +1,21 @@
+---
+interface Props {
+  items: { label: string; value?: string }[];
+}
+
+const { items } = Astro.props;
+const visible = items.filter((item) => item.value);
+---
+
+{
+  visible.length > 0 && (
+    <dl class="mb-8 grid gap-3 rounded-2xl border border-line bg-panel/70 p-5 sm:grid-cols-2">
+      {visible.map((item) => (
+        <div>
+          <dt class="text-xs uppercase tracking-[0.16em] text-dim">{item.label}</dt>
+          <dd class="mt-1 text-mist">{item.value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}

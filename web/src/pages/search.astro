@@ -1,0 +1,16 @@
+---
+import Layout from "../components/Layout.astro";
+import SearchPanel from "../components/SearchPanel.astro";
+import { getLore } from "../lib/lore";
+
+const entities = getLore().entities;
+---
+
+<Layout title="Поиск" description="Поиск по канону Universe War History.">
+  <p class="text-xs uppercase tracking-[0.28em] text-gold">Найти в каноне</p>
+  <h1 class="mt-3 font-display text-5xl text-gold-soft">Поиск</h1>
+  <p class="mt-4 max-w-2xl text-dim">Клавиша / ставит курсор в поле. Фильтры по типу можно сочетать.</p>
+  <div class="mt-8">
+    <SearchPanel entities={entities} />
+  </div>
+</Layout>

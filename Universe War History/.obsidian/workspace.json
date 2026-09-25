@@ -1,0 +1,227 @@
+{
+  "main": {
+    "id": "555961ecf052674b",
+    "type": "split",
+    "children": [
+      {
+        "id": "ab261018632e166b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "66fb721c261aaf43",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "99_Templates/Event Template.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Event Template"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "838fe7095f89397f",
+    "type": "split",
+    "children": [
+      {
+        "id": "3eb0a64233e27f3c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ba6ee3048d415668",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Файловый менеджер"
+            }
+          },
+          {
+            "id": "396f1c7a4ecac8fd",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "1610c8de90fb0b0b",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "ce67564e6689d750",
+    "type": "split",
+    "children": [
+      {
+        "id": "ec9da733f969630f",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1b1acb36586879c7",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "01_Characters/Сакура.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for Сакура"
+            }
+          },
+          {
+            "id": "0305550dde3901d5",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "01_Characters/Сакура.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from Сакура"
+            }
+          },
+          {
+            "id": "9262db6065a653e7",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "234bb6fe5e447843",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "e5490900fa893323",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "01_Characters/Сакура.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Сакура"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Меню быстрого перехода": false,
+      "graph:Граф": false,
+      "canvas:Создать новый холст": false,
+      "daily-notes:Сегодняшняя заметка": false,
+      "templates:Вставить шаблон": false,
+      "command-palette:Открыть палитру команд": false,
+      "bases:Создать новую базу": false
+    }
+  },
+  "active": "66fb721c261aaf43",
+  "lastOpenFiles": [
+    "99_Templates/Rule Template.md",
+    "99_Templates/Period Template.md",
+    "99_Templates/Location Template.md",
+    "99_Templates/Event Template.md",
+    "99_Templates/Character Template.md",
+    "99_Templates/Character/Связи.md",
+    "99_Templates/Character/Профиль.md",
+    "99_Templates/Character/Внешность.md",
+    "99_Templates/Character/Боевая статистика.md",
+    "01_Characters/New World Characters/Шон Фальц.md",
+    "01_Characters/New World Characters/Дэнхард.md",
+    "01_Characters/New World Characters/Дона.md",
+    "01_Characters/New World Characters/Джайна.md",
+    "01_Characters/New World Characters/Деймон Корнелл.md",
+    "01_Characters/New World Characters/Аксель.md",
+    "01_Characters/The Earth Characters/Смоук.md",
+    "01_Characters/The Earth Characters/Зик Фальц.md",
+    "01_Characters/Titania Characters/Рамона.md",
+    "01_Characters/Titania Characters/Чита.md",
+    "01_Characters/Titania Characters/Дэниель 2.md",
+    "01_Characters/Titania Characters/Скарлет.md",
+    "01_Characters/The Earth Characters/Дед строук Нейтан Филлион.md",
+    "01_Characters/The Earth Characters/Страйкер Вильям Гроссман.md",
+    "01_Characters/Titania Characters/Кенни Лайтнинг.md",
+    "01_Characters/Titania Characters/Рипер.md",
+    "01_Characters/The Earth Characters/Бладрейдж.md",
+    "01_Characters/New World Characters",
+    "99_Templates/Character",
+    "01_Characters/Neuro Oasis Characters",
+    "01_Characters/Uggrhri Characters",
+    "01_Characters/Ranaba Characters",
+    "01_Characters/Kölgö Characters",
+    "01_Characters/Magnarok Characters",
+    "01_Characters/Cauldoron Characters",
+    "01_Characters/The Earth Characters",
+    "01_Characters/Titania Characters"
+  ]
+}

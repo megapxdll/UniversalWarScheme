@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --color-void: #07090e;
+  --color-ink: #10141c;
+  --color-panel: #171d28;
+  --color-line: #2a3344;
+  --color-gold: #d4b060;
+  --color-gold-soft: #ead7a2;
+  --color-mist: #d7d1c4;
+  --color-dim: #8d867b;
+  --color-ice: #8eb8d4;
+  --color-ember: #c45c4a;
+}
+
+html {
+  background: var(--color-void);
+  color: var(--color-mist);
+}
+
+body {
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  background:
+    radial-gradient(1200px 560px at 8% -12%, rgba(212, 176, 96, 0.1), transparent 55%),
+    radial-gradient(900px 480px at 100% 0%, rgba(90, 130, 190, 0.12), transparent 50%),
+    radial-gradient(700px 400px at 50% 100%, rgba(196, 92, 74, 0.08), transparent 55%),
+    var(--color-void);
+}
+
+.prose-lore {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--color-mist);
+}
+
+.prose-lore h2,
+.prose-lore h3 {
+  font-family: var(--font-display);
+  color: var(--color-gold-soft);
+  margin-top: 2rem;
+  margin-bottom: 0.7rem;
+}
+
+.prose-lore h2 {
+  font-size: 1.7rem;
+}
+
+.prose-lore p {
+  margin: 0.85rem 0;
+}
+
+.prose-lore ul,
+.prose-lore ol {
+  margin: 0.7rem 0 0.7rem 1.2rem;
+}
+
+.prose-lore li {
+  margin: 0.25rem 0;
+}
+
+.prose-lore a {
+  color: var(--color-gold);
+  text-decoration: underline;
+  text-decoration-color: rgba(212, 176, 96, 0.4);
+  text-underline-offset: 3px;
+}
+
+.prose-lore a:hover {
+  color: var(--color-gold-soft);
+}
+
+.wiki-missing {
+  color: var(--color-dim);
+  border-bottom: 1px dashed rgba(141, 134, 123, 0.7);
+  cursor: help;
+}

@@ -1,0 +1,206 @@
+---
+import type { EntityType } from "../lib/lore";
+
+interface GraphNode {
+  id: string;
+  title: string;
+  type: EntityType;
+  href: string;
+}
+
+interface GraphEdge {
+  source: string;
+  target: string;
+}
+
+interface Props {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+const { nodes, edges } = Astro.props;
+---
+
+<section class="overflow-hidden rounded-2xl border border-line bg-ink">
+  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3 text-sm text-dim">
+    <p>Связи канона: вики-ссылки и поля вроде фракции, семьи, локации.</p>
+    <ul class="flex flex-wrap gap-3 text-xs uppercase tracking-wider">
+      <li class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-gold"></span> Персонаж</li>
+      <li class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-ice"></span> Локация</li>
+      <li class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-ember"></span> Фракция</li>
+      <li class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-violet-400"></span> Правило</li>
+    </ul>
+  </div>
+  <canvas id="lore-graph" class="h-[640px] w-full cursor-grab"></canvas>
+  <p id="graph-hint" class="px-4 py-3 text-sm text-dim">Наведите на узел. Клик открывает страницу.</p>
+</section>
+
+<script define:vars={{ graphNodes: nodes, graphEdges: edges }}>
+  const colors = {
+    character: "#d4b060",
+    location: "#8eb8d4",
+    faction: "#c45c4a",
+    rule: "#c4a6ff",
+    event: "#e09a5b",
+    period: "#7ad0b0",
+  };
+
+  const canvas = document.getElementById("lore-graph");
+  const hint = document.getElementById("graph-hint");
+  const parsed = { nodes: graphNodes, edges: graphEdges };
+
+  if (canvas && parsed.nodes.length) {
+    const ctx = canvas.getContext("2d");
+    const simNodes = parsed.nodes.map((node, index) => {
+      const angle = (index / parsed.nodes.length) * Math.PI * 2;
+      return {
+        ...node,
+        x: Math.cos(angle) * 160,
+        y: Math.sin(angle) * 160,
+        vx: 0,
+        vy: 0,
+      };
+    });
+    const nodeMap = new Map(simNodes.map((node) => [node.id, node]));
+    const links = parsed.edges
+      .map((edge) => ({
+        source: nodeMap.get(edge.source),
+        target: nodeMap.get(edge.target),
+      }))
+      .filter((edge) => edge.source && edge.target);
+
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let hovered = null;
+    let dragged = null;
+    let moved = false;
+
+    const resize = () => {
+      dpr = window.devicePixelRatio || 1;
+      width = canvas.clientWidth;
+      height = canvas.clientHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    const tick = () => {
+      for (let i = 0; i < simNodes.length; i += 1) {
+        for (let j = i + 1; j < simNodes.length; j += 1) {
+          const a = simNodes[i];
+          const b = simNodes[j];
+          let dx = a.x - b.x;
+          let dy = a.y - b.y;
+          let dist = Math.hypot(dx, dy) || 0.1;
+          const force = 1800 / (dist * dist);
+          dx /= dist;
+          dy /= dist;
+          a.vx += dx * force;
+          a.vy += dy * force;
+          b.vx -= dx * force;
+          b.vy -= dy * force;
+        }
+      }
+
+      for (const link of links) {
+        const dx = link.target.x - link.source.x;
+        const dy = link.target.y - link.source.y;
+        link.source.vx += dx * 0.01;
+        link.source.vy += dy * 0.01;
+        link.target.vx -= dx * 0.01;
+        link.target.vy -= dy * 0.01;
+      }
+
+      for (const node of simNodes) {
+        if (node === dragged) continue;
+        node.vx += -node.x * 0.008;
+        node.vy += -node.y * 0.008;
+        node.vx *= 0.82;
+        node.vy *= 0.82;
+        node.x += node.vx;
+        node.y += node.vy;
+      }
+    };
+
+    const draw = () => {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, width, height);
+      ctx.save();
+      ctx.translate(width / 2, height / 2);
+
+      ctx.strokeStyle = "rgba(212, 176, 96, 0.28)";
+      ctx.lineWidth = 1;
+      for (const link of links) {
+        ctx.beginPath();
+        ctx.moveTo(link.source.x, link.source.y);
+        ctx.lineTo(link.target.x, link.target.y);
+        ctx.stroke();
+      }
+
+      for (const node of simNodes) {
+        ctx.beginPath();
+        ctx.fillStyle = colors[node.type] || "#d7d1c4";
+        ctx.arc(node.x, node.y, node === hovered ? 9 : 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = node === hovered ? "#ead7a2" : "#d7d1c4";
+        ctx.font = "14px Manrope, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(node.title, node.x, node.y + 22);
+      }
+      ctx.restore();
+    };
+
+    const pointFromEvent = (event) => {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left - width / 2,
+        y: event.clientY - rect.top - height / 2,
+      };
+    };
+
+    const nodeAt = (x, y) => simNodes.find((node) => Math.hypot(node.x - x, node.y - y) < 18) ?? null;
+
+    canvas.addEventListener("pointermove", (event) => {
+      const point = pointFromEvent(event);
+      if (dragged) {
+        moved = true;
+        dragged.x = point.x;
+        dragged.y = point.y;
+        dragged.vx = 0;
+        dragged.vy = 0;
+      } else {
+        hovered = nodeAt(point.x, point.y);
+        canvas.style.cursor = hovered ? "pointer" : "grab";
+        if (hint) hint.textContent = hovered ? hovered.title : "Наведите на узел. Клик открывает страницу.";
+      }
+    });
+
+    canvas.addEventListener("pointerdown", (event) => {
+      const point = pointFromEvent(event);
+      dragged = nodeAt(point.x, point.y);
+      moved = false;
+      canvas.setPointerCapture(event.pointerId);
+    });
+
+    canvas.addEventListener("pointerup", (event) => {
+      const point = pointFromEvent(event);
+      const node = nodeAt(point.x, point.y);
+      if (!moved && node && dragged && node.id === dragged.id) {
+        window.location.href = node.href;
+      }
+      dragged = null;
+    });
+
+    resize();
+    window.addEventListener("resize", resize);
+    for (let i = 0; i < 180; i += 1) tick();
+
+    const loop = () => {
+      tick();
+      draw();
+      requestAnimationFrame(loop);
+    };
+    loop();
+  }
+</script>

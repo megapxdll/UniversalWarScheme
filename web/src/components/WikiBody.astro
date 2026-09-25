@@ -1,0 +1,19 @@
+---
+import { getLore, type LoreEntity } from "../lib/lore";
+import { renderEntityHtml } from "../lib/markdown";
+
+interface Props {
+  entity: LoreEntity;
+}
+
+const { entity } = Astro.props;
+const html = renderEntityHtml(entity, getLore());
+---
+
+{
+  html.trim() ? (
+    <div class="prose-lore" set:html={html} />
+  ) : (
+    <p class="text-dim">Описание ещё не заполнено. Канон в работе.</p>
+  )
+}

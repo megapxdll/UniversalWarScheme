@@ -1,0 +1,78 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "Канон вселенной Universe War History — персонажи, миры, фракции и законы силы." } =
+  Astro.props;
+const pageTitle = title === "Universe War History" ? title : `${title} — Universe War History`;
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{pageTitle}</title>
+  </head>
+  <body class="min-h-screen">
+    <a
+      href="#content"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-gold focus:px-3 focus:py-2 focus:text-void"
+    >
+      К содержанию
+    </a>
+    <header class="border-b border-line/80 bg-ink/70 backdrop-blur">
+      <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
+        <a href="/" class="font-display text-2xl tracking-wide text-gold-soft">
+          Universe War History
+        </a>
+        <details class="relative md:hidden">
+          <summary class="cursor-pointer list-none rounded border border-line px-3 py-1.5 text-sm text-mist">
+            Меню
+          </summary>
+          <nav class="absolute right-0 z-20 mt-2 min-w-48 rounded-lg border border-line bg-panel p-3 shadow-xl">
+            <ul class="grid gap-2 text-sm">
+              <li><a class="hover:text-gold" href="/characters">Персонажи</a></li>
+              <li><a class="hover:text-gold" href="/locations">Локации</a></li>
+              <li><a class="hover:text-gold" href="/factions">Фракции</a></li>
+              <li><a class="hover:text-gold" href="/rules">Правила</a></li>
+              <li><a class="hover:text-gold" href="/events">События</a></li>
+              <li><a class="hover:text-gold" href="/graph">Граф</a></li>
+              <li><a class="hover:text-gold" href="/search">Поиск</a></li>
+            </ul>
+          </nav>
+        </details>
+        <nav class="hidden items-center gap-5 text-sm text-mist md:flex">
+          <a class="hover:text-gold" href="/characters">Персонажи</a>
+          <a class="hover:text-gold" href="/locations">Локации</a>
+          <a class="hover:text-gold" href="/factions">Фракции</a>
+          <a class="hover:text-gold" href="/rules">Правила</a>
+          <a class="hover:text-gold" href="/events">События</a>
+          <a class="hover:text-gold" href="/graph">Граф</a>
+          <a class="hover:text-gold" href="/search">Поиск</a>
+        </nav>
+      </div>
+    </header>
+    <main id="content" class="mx-auto max-w-6xl px-4 py-10">
+      <slot />
+    </main>
+    <footer class="border-t border-line/80 py-8 text-center text-sm text-dim">
+      Канон пишется в Obsidian и публикуется как энциклопедия. Черновики видны, пока не включён PUBLIC_HIDE_DRAFTS.
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,114 @@
+---
+import { COLLECTIONS, TYPE_LABELS, type LoreEntity } from "../lib/lore";
+
+interface Props {
+  entities: LoreEntity[];
+}
+
+const { entities } = Astro.props;
+const types = Object.values(COLLECTIONS).map((collection) => collection.type);
+const searchItems = entities.map((entity) => ({
+  title: entity.title,
+  href: entity.href,
+  type: entity.type,
+  typeLabel: TYPE_LABELS[entity.type],
+  excerpt: entity.excerpt,
+  status: entity.status,
+  haystack: [
+    entity.title,
+    entity.excerpt,
+    entity.extra.role,
+    entity.extra.faction,
+    entity.extra.home,
+    entity.extra.system,
+    ...entity.names,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase(),
+}));
+---
+
+<div class="space-y-5">
+  <label class="block">
+    <span class="mb-2 block text-xs uppercase tracking-[0.16em] text-dim">Запрос</span>
+    <input
+      id="lore-search"
+      type="search"
+      placeholder="Кай, Титания, Кут…"
+      class="w-full rounded-xl border border-line bg-ink px-4 py-3 text-mist outline-none ring-gold/40 placeholder:text-dim focus:ring-2"
+    />
+  </label>
+  <div class="flex flex-wrap gap-2" id="type-filters">
+    {
+      types.map((type) => (
+        <button
+          type="button"
+          data-type={type}
+          class="type-chip rounded-full border border-line px-3 py-1 text-sm text-mist"
+        >
+          {TYPE_LABELS[type]}
+        </button>
+      ))
+    }
+  </div>
+  <p id="search-count" class="text-sm text-dim"></p>
+  <div id="search-results" class="grid gap-3"></div>
+</div>
+
+<script define:vars={{ searchItems }}>
+  const items = searchItems;
+  const input = document.getElementById("lore-search");
+  const results = document.getElementById("search-results");
+  const count = document.getElementById("search-count");
+  const chips = [...document.querySelectorAll(".type-chip")];
+  const active = new Set();
+
+  const escapeHtml = (value) =>
+    String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+
+  const render = () => {
+    if (!results || !count || !input) return;
+    const query = input.value.trim().toLowerCase();
+    const matched = items.filter((item) => {
+      if (active.size && !active.has(item.type)) return false;
+      return !query || item.haystack.includes(query);
+    });
+    count.textContent = `Найдено: ${matched.length}`;
+    results.innerHTML = matched
+      .map(
+        (item) => `
+        <a href="${escapeHtml(item.href)}" class="block rounded-xl border border-line bg-panel/80 p-4 hover:border-gold/50">
+          <div class="text-xs uppercase tracking-[0.16em] text-dim">${escapeHtml(item.typeLabel)}${item.status === "draft" ? " · черновик" : ""}</div>
+          <div class="mt-1 font-display text-2xl text-gold-soft">${escapeHtml(item.title)}</div>
+          ${item.excerpt ? `<p class="mt-2 text-sm text-dim">${escapeHtml(item.excerpt)}</p>` : ""}
+        </a>
+      `,
+      )
+      .join("");
+  };
+
+  chips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const type = chip.dataset.type ?? "";
+      if (active.has(type)) active.delete(type);
+      else active.add(type);
+      chip.classList.toggle("border-gold", active.has(type));
+      chip.classList.toggle("text-gold", active.has(type));
+      render();
+    });
+  });
+
+  input?.addEventListener("input", render);
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "/" && document.activeElement !== input) {
+      event.preventDefault();
+      input?.focus();
+    }
+  });
+  render();
+</script>

@@ -1,0 +1,111 @@
+---
+import Layout from "../../components/Layout.astro";
+import MetaList from "../../components/MetaList.astro";
+import WikiBody from "../../components/WikiBody.astro";
+import {
+  COLLECTIONS,
+  collectionForType,
+  getLore,
+  isCollectionKey,
+  TYPE_LABELS,
+} from "../../lib/lore";
+
+export function getStaticPaths() {
+  return getLore().entities.map((entity) => ({
+    params: {
+      collection: collectionForType(entity.type),
+      slug: entity.slug,
+    },
+  }));
+}
+
+const { collection, slug } = Astro.params;
+const lore = getLore();
+const entity = lore.entities.find(
+  (item) => item.slug === slug && isCollectionKey(collection) && collectionForType(item.type) === collection,
+);
+
+if (!entity) {
+  return Astro.redirect("/404");
+}
+
+const mentionedIn = lore.incoming.get(entity.id) ?? [];
+const collectionMeta = COLLECTIONS[collection];
+---
+
+<Layout title={entity.title} description={entity.excerpt || `${TYPE_LABELS[entity.type]} канона Universe War History.`}>
+  <a href={`/${collection}`} class="text-sm text-gold hover:text-gold-soft">← {collectionMeta.title}</a>
+  <div class="mt-4 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-dim">
+    <span>{TYPE_LABELS[entity.type]}</span>
+    {entity.status === "draft" && (
+      <span class="rounded-full border border-gold/40 px-2 py-0.5 text-gold">Черновик</span>
+    )}
+  </div>
+  <h1 class="mt-3 font-display text-5xl text-gold-soft">{entity.title}</h1>
+
+  <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_16rem]">
+    <article>
+      <MetaList
+        items={[
+          { label: "Второе имя", value: entity.extra.secondName },
+          { label: "Пол", value: entity.extra.gender },
+          { label: "Возраст", value: entity.extra.speciesAge },
+          { label: "Роль", value: entity.extra.role },
+          { label: "Дата рождения", value: entity.extra.birthDate },
+          { label: "Место рождения", value: entity.extra.home },
+          { label: "Дата смерти", value: entity.extra.deathDate },
+          { label: "Статус", value: entity.extra.lifeStatus },
+          { label: "Фракция", value: entity.extra.faction },
+          { label: "Рост", value: entity.extra.height },
+          { label: "Вес", value: entity.extra.weight },
+          { label: "Тип волос", value: entity.extra.hairType },
+          { label: "Цвет волос", value: entity.extra.hairColor },
+          { label: "Цвет глаз", value: entity.extra.eyeColor },
+          { label: "Телосложение", value: entity.extra.build },
+          { label: "Тип способностей", value: entity.extra.abilityType },
+          { label: "Основное оружие", value: entity.extra.weapon },
+          { label: "Боевой стиль", value: entity.extra.fightingStyle },
+          { label: "Сила", value: entity.extra.strength },
+          { label: "Скорость", value: entity.extra.speed },
+          { label: "Выносливость", value: entity.extra.stamina },
+          { label: "Интеллект", value: entity.extra.intellect },
+          { label: "Общий показатель", value: entity.extra.overall },
+          { label: "Вид", value: entity.extra.kind },
+          { label: "Система", value: entity.extra.system },
+          { label: "Население", value: entity.extra.population },
+          { label: "Связанные персонажи", value: entity.extra.relatedCharacters },
+          { label: "Цель", value: entity.extra.goal },
+          { label: "Период существования", value: entity.extra.existencePeriod },
+          { label: "Дата и время", value: entity.extra.eventDate },
+          { label: "Место", value: entity.extra.eventPlace },
+          { label: "Период", value: entity.extra.period },
+          { label: "Участники", value: entity.extra.participants },
+          { label: "Семья", value: entity.extra.family },
+          { label: "Друзья", value: entity.extra.allies },
+          { label: "Враги", value: entity.extra.enemies },
+          { label: "Напарники", value: entity.extra.partners },
+        ]}
+      />
+      <WikiBody entity={entity} />
+    </article>
+    <aside class="h-fit rounded-2xl border border-line bg-panel/70 p-5">
+      <h2 class="text-xs uppercase tracking-[0.18em] text-dim">Упоминается в</h2>
+      {
+        mentionedIn.length ? (
+          <ul class="mt-3 space-y-2">
+            {mentionedIn.map((item) => (
+              <li>
+                <a class="text-gold hover:text-gold-soft" href={item.href}>
+                  {item.title}
+                </a>
+                <div class="text-xs text-dim">{TYPE_LABELS[item.type]}</div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="mt-3 text-sm text-dim">Пока нет входящих ссылок.</p>
+        )
+      }
+    </aside>
+  </div>
+</Layout>

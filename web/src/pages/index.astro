@@ -1,0 +1,45 @@
+---
+import Layout from "../components/Layout.astro";
+import EntityCard from "../components/EntityCard.astro";
+import { COLLECTIONS, entitiesOf, getLore } from "../lib/lore";
+
+const lore = getLore();
+const featured = lore.entities.slice(0, 6);
+const counts = (Object.keys(COLLECTIONS) as (keyof typeof COLLECTIONS)[]).map((key) => ({
+  key,
+  ...COLLECTIONS[key],
+  count: entitiesOf(COLLECTIONS[key].type).length,
+}));
+---
+
+<Layout title="Universe War History" description="Энциклопедия канона Universe War History.">
+  <section class="max-w-3xl">
+    <p class="text-xs uppercase tracking-[0.28em] text-gold">Канон вселенной</p>
+    <h1 class="mt-3 font-display text-5xl leading-tight text-gold-soft sm:text-6xl">Universe War History</h1>
+    <p class="mt-5 text-lg leading-8 text-mist">
+      Хроника миров, где Кут звучит как отпечаток души, Титания держит боевые академии, а Земля и Kölgö стоят на разных
+      полюсах одной войны. Этот сайт читает заметки из Obsidian и собирает из них энциклопедию.
+    </p>
+  </section>
+
+  <section class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      counts.map((item) => (
+        <a href={`/${item.key}`} class="rounded-2xl border border-line bg-panel/70 p-5 hover:border-gold/40">
+          <div class="font-display text-3xl text-gold">{item.count}</div>
+          <div class="mt-1 text-mist">{item.title}</div>
+        </a>
+      ))
+    }
+  </section>
+
+  <section class="mt-14">
+    <div class="mb-6 flex items-end justify-between gap-4">
+      <h2 class="font-display text-3xl text-gold-soft">Записи канона</h2>
+      <a href="/search" class="text-sm text-gold hover:text-gold-soft">Открыть поиск</a>
+    </div>
+    <div class="grid gap-4 md:grid-cols-2">
+      {featured.map((entity) => <EntityCard entity={entity} />)}
+    </div>
+  </section>
+</Layout>
