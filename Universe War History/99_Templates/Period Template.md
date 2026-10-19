@@ -2,7 +2,8 @@
 type: period
 status: draft
 tags: [period]
-range: 
+range:
+эпоха:
 ---
 
 # {{title}}

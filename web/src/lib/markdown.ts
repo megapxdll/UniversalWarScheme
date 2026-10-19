@@ -43,8 +43,27 @@ export function dropFirstHeading(markdown: string): string {
   return markdown.replace(/^#{1,3}\s+.+\n+/, "");
 }
 
+function dropPortraitEmbed(markdown: string, portrait?: string): string {
+  if (!portrait) {
+    return markdown.replace(/!\[\[([^\]|]+\.(?:png|jpe?g|webp|gif|avif))(?:\|[^\]]+)?\]\]\s*/gi, "");
+  }
+  const escaped = portrait.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return markdown.replace(new RegExp(`!\\[\\[${escaped}(?:\\|[^\\]]+)?\\]\\]\\s*`, "gi"), "");
+}
+
 export function renderEntityHtml(entity: LoreEntity, lore: LoreIndex): string {
   let markdown = dropFirstHeading(entity.body);
+  markdown = dropPortraitEmbed(markdown, entity.extra.portrait);
+  markdown = markdown.replace(
+    /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g,
+    (_all, file: string, alt?: string) => {
+      const name = String(file).replaceAll("\\", "/").split("/").pop() ?? "";
+      if (!/\.(png|jpe?g|webp|gif|avif)$/i.test(name)) return "";
+      const src = `/canon-images/${encodeURIComponent(name)}`;
+      const label = (alt || name.replace(/\.[^.]+$/, "")).trim();
+      return `<img src="${src}" alt="${label}" class="lore-portrait" />`;
+    },
+  );
   markdown = pruneEmptySections(markdown);
   markdown = rewriteWikiLinks(markdown, (name) => {
     const hit = lore.resolve(name);

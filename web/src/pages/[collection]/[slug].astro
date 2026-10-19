@@ -11,6 +11,7 @@ import {
 } from "../../lib/lore";
 
 export function getStaticPaths() {
+  // Vault notes live outside src/; this re-runs in `astro dev` when the page module reloads.
   return getLore().entities.map((entity) => ({
     params: {
       collection: collectionForType(entity.type),
@@ -35,13 +36,43 @@ const collectionMeta = COLLECTIONS[collection];
 
 <Layout title={entity.title} description={entity.excerpt || `${TYPE_LABELS[entity.type]} канона Universe War History.`}>
   <a href={`/${collection}`} class="text-sm text-gold hover:text-gold-soft">← {collectionMeta.title}</a>
-  <div class="mt-4 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-dim">
-    <span>{TYPE_LABELS[entity.type]}</span>
-    {entity.status === "draft" && (
-      <span class="rounded-full border border-gold/40 px-2 py-0.5 text-gold">Черновик</span>
-    )}
+  <div class="mt-4 flex flex-wrap items-start gap-6">
+    {
+      entity.extra.portraitUrl && entity.type === "character" && (
+        <img
+          src={entity.extra.portraitUrl}
+          alt={entity.title}
+          class="h-56 w-44 rounded-2xl border border-line object-cover bg-ink"
+        />
+      )
+    }
+    <div>
+      <div class="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-dim">
+        <span>{TYPE_LABELS[entity.type]}</span>
+        {entity.status === "draft" && (
+          <span class="rounded-full border border-gold/40 px-2 py-0.5 text-gold">Черновик</span>
+        )}
+      </div>
+      <h1 class="mt-3 font-display text-5xl text-gold-soft">{entity.title}</h1>
+      {import.meta.env.DEV && (
+        <a
+          class="mt-3 inline-block text-sm text-gold hover:text-gold-soft"
+          href={`/admin/new?path=${encodeURIComponent(entity.sourcePath)}`}
+        >
+          Править в админке
+        </a>
+      )}
+    </div>
   </div>
-  <h1 class="mt-3 font-display text-5xl text-gold-soft">{entity.title}</h1>
+  {
+    entity.extra.portraitUrl && entity.type !== "character" && (
+      <img
+        src={entity.extra.portraitUrl}
+        alt={entity.title}
+        class="mt-6 w-full max-h-[34rem] rounded-2xl border border-line bg-ink object-contain"
+      />
+    )
+  }
 
   <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_16rem]">
     <article>
@@ -51,6 +82,9 @@ const collectionMeta = COLLECTIONS[collection];
           { label: "Пол", value: entity.extra.gender },
           { label: "Возраст", value: entity.extra.speciesAge },
           { label: "Роль", value: entity.extra.role },
+          { label: "Раса", value: entity.extra.race },
+          { label: "Стихия", value: entity.extra.element },
+          { label: "Цикл перерождений", value: entity.extra.cycle },
           { label: "Дата рождения", value: entity.extra.birthDate },
           { label: "Место рождения", value: entity.extra.home },
           { label: "Дата смерти", value: entity.extra.deathDate },
@@ -79,8 +113,11 @@ const collectionMeta = COLLECTIONS[collection];
           { label: "Дата и время", value: entity.extra.eventDate },
           { label: "Место", value: entity.extra.eventPlace },
           { label: "Период", value: entity.extra.period },
+          { label: "Эпоха", value: entity.extra.epoch },
+          { label: "Диапазон", value: entity.extra.range },
           { label: "Участники", value: entity.extra.participants },
           { label: "Семья", value: entity.extra.family },
+          { label: "Романтика", value: entity.extra.romance },
           { label: "Друзья", value: entity.extra.allies },
           { label: "Враги", value: entity.extra.enemies },
           { label: "Напарники", value: entity.extra.partners },

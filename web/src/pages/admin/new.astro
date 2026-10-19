@@ -1,0 +1,310 @@
+---
+import AdminLayout from "../../components/admin/AdminLayout.astro";
+import { CHARACTER_FOLDERS } from "../../lib/admin/write-note";
+
+const types = [
+  { id: "character", label: "Персонаж" },
+  { id: "location", label: "Локация" },
+  { id: "faction", label: "Фракция" },
+  { id: "event", label: "Событие" },
+  { id: "period", label: "Период" },
+  { id: "rule", label: "Правило" },
+];
+---
+
+<AdminLayout title="Запись канона">
+  <a href="/admin/catalog" class="text-sm text-gold hover:text-gold-soft">← К справочникам</a>
+  <h1 id="admin-heading" class="mt-3 font-display text-4xl text-gold-soft">Создать в Obsidian</h1>
+  <p id="admin-sub" class="mt-2 text-sm text-dim">Новая заметка появится в vault и подхватится энциклопедией.</p>
+
+  <form id="canon-form" class="mt-8 space-y-8">
+    <input type="hidden" id="source-path" />
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label>
+        <span class="admin-label">Тип</span>
+        <select id="entity-type" class="admin-select">
+          {types.map((type) => <option value={type.id}>{type.label}</option>)}
+        </select>
+      </label>
+      <label>
+        <span class="admin-label">Имя / название</span>
+        <input name="title" required class="admin-input" placeholder="Сакура" />
+      </label>
+      <label class="sm:col-span-2">
+        <span class="admin-label">Алиасы через запятую</span>
+        <input name="aliases" class="admin-input" placeholder="Дэниел Сольварен, Леон Астэр" />
+      </label>
+    </div>
+
+    <div class="rounded-2xl border border-line bg-panel/50 p-5">
+      <span class="admin-label">Картинка-ассоциация</span>
+      <p class="mb-3 text-sm text-dim">Визуальный образ записи. Файл попадёт в Obsidian и на карточки энциклопедии.</p>
+      <div class="flex flex-wrap items-start gap-4">
+        <img id="portrait-preview" alt="" class="hidden max-h-40 max-w-md rounded-xl border border-line object-contain bg-ink" />
+        <div>
+          <label class="inline-block cursor-pointer rounded-xl border border-line px-4 py-2 text-sm hover:border-gold/50">
+            Выбрать картинку
+            <input id="portrait-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden" />
+          </label>
+          <input type="hidden" name="portrait" />
+          <p id="portrait-name" class="mt-2 text-xs text-dim"></p>
+        </div>
+      </div>
+    </div>
+
+    <section data-type-form="character" class="space-y-8">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label>
+          <span class="admin-label">Папка персонажей</span>
+          <select name="characterFolder" class="admin-select">
+            {CHARACTER_FOLDERS.map((folder) => <option value={folder}>{folder}</option>)}
+          </select>
+        </label>
+      </div>
+
+      <details open class="rounded-2xl border border-line bg-panel/50 p-5">
+        <summary class="cursor-pointer font-display text-2xl text-gold-soft">Профиль</summary>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <label><span class="admin-label">Второе имя</span><input name="secondName" class="admin-input" /></label>
+          <label>
+            <span class="admin-label">Пол</span>
+            <select name="gender" class="admin-select">
+              <option value="">—</option>
+              <option>мужской</option>
+              <option>женский</option>
+            </select>
+          </label>
+          <label><span class="admin-label">Возраст</span><input name="age" class="admin-input" /></label>
+          <label>
+            <span class="admin-label">Жизненный статус</span>
+            <select name="lifeStatus" class="admin-select">
+              <option>жив</option>
+              <option>жива</option>
+              <option>мертв</option>
+              <option>мертва</option>
+              <option>новобранец</option>
+              <option>ученик</option>
+              <option>ученица</option>
+            </select>
+          </label>
+          <label><span class="admin-label">Дата рождения</span><input name="birthDate" class="admin-input" /></label>
+          <label><span class="admin-label">Дата смерти</span><input name="deathDate" class="admin-input" /></label>
+          <div>
+            <span class="admin-label">Место рождения</span>
+            <div class="entity-picker" data-name="birthplace" data-types="location" data-multiple="false">
+              <input class="picker-input admin-input" placeholder="Титания" />
+              <div class="picker-suggest hidden rounded-xl border border-line bg-ink"></div>
+              <div class="picker-chips mt-2 flex flex-wrap gap-2"></div>
+            </div>
+          </div>
+          <div>
+            <span class="admin-label">Фракции</span>
+            <div class="entity-picker" data-name="faction" data-types="faction">
+              <input class="picker-input admin-input" placeholder="Боевая Академия Титанов" />
+              <div class="picker-suggest hidden rounded-xl border border-line bg-ink"></div>
+              <div class="picker-chips mt-2 flex flex-wrap gap-2"></div>
+            </div>
+          </div>
+          <label><span class="admin-label">Раса</span><input name="race" class="admin-input" placeholder="титанид" /></label>
+          <label><span class="admin-label">Стихия</span><input name="element" class="admin-input" placeholder="огонь" /></label>
+          <label><span class="admin-label">Роль</span><input name="role" class="admin-input" placeholder="пятое перерождение Астера" /></label>
+          <label><span class="admin-label">Цикл перерождений</span><input name="cycle" class="admin-input" placeholder="5" /></label>
+        </div>
+      </details>
+
+      <details class="rounded-2xl border border-line bg-panel/50 p-5">
+        <summary class="cursor-pointer font-display text-2xl text-gold-soft">Внешность</summary>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <label><span class="admin-label">Рост</span><input name="height" class="admin-input" /></label>
+          <label><span class="admin-label">Вес</span><input name="weight" class="admin-input" /></label>
+          <label><span class="admin-label">Тип волос</span><input name="hairType" class="admin-input" /></label>
+          <label><span class="admin-label">Цвет волос</span><input name="hairColor" class="admin-input" /></label>
+          <label><span class="admin-label">Цвет глаз</span><input name="eyeColor" class="admin-input" /></label>
+          <label><span class="admin-label">Телосложение</span><input name="build" class="admin-input" /></label>
+          <label class="sm:col-span-2">
+            <span class="admin-label">Дополнительно (одежда, детали)</span>
+            <textarea name="lookNotes" rows="3" class="admin-textarea"></textarea>
+          </label>
+        </div>
+      </details>
+
+      <details class="rounded-2xl border border-line bg-panel/50 p-5">
+        <summary class="cursor-pointer font-display text-2xl text-gold-soft">Боевая статистика</summary>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <label class="sm:col-span-2"><span class="admin-label">Тип способностей</span><input name="abilityType" class="admin-input" /></label>
+          <label><span class="admin-label">Оружие</span><input name="weapon" class="admin-input" /></label>
+          <label><span class="admin-label">Боевой стиль / спецприёмы</span><input name="fightingStyle" class="admin-input" /></label>
+          <label><span class="admin-label">Сила</span><input name="strength" type="number" step="0.1" class="admin-input" /></label>
+          <label><span class="admin-label">Скорость</span><input name="speed" type="number" step="0.1" class="admin-input" /></label>
+          <label><span class="admin-label">Выносливость</span><input name="stamina" type="number" step="0.1" class="admin-input" /></label>
+          <label><span class="admin-label">Интеллект</span><input name="intellect" type="number" step="0.1" class="admin-input" /></label>
+          <label><span class="admin-label">Общий показатель</span><input name="overall" type="number" step="0.1" class="admin-input" /></label>
+        </div>
+      </details>
+
+      <details open class="rounded-2xl border border-line bg-panel/50 p-5">
+        <summary class="cursor-pointer font-display text-2xl text-gold-soft">Связи</summary>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          {
+            [
+              ["family", "Семья", "character"],
+              ["romance", "Романтика", "character"],
+              ["friends", "Друзья", "character"],
+              ["enemies", "Враги", "character"],
+              ["partners", "Напарники", "character"],
+              ["events", "События", "event"],
+            ].map(([name, label, types]) => (
+              <div>
+                <span class="admin-label">{label}</span>
+                <div class="entity-picker" data-name={name} data-types={types}>
+                  <input class="picker-input admin-input" placeholder="Имя из канона" />
+                  <div class="picker-suggest hidden rounded-xl border border-line bg-ink"></div>
+                  <div class="picker-chips mt-2 flex flex-wrap gap-2"></div>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </details>
+
+      <label class="block">
+        <span class="admin-label">Характер</span>
+        <textarea name="character" rows="5" class="admin-textarea"></textarea>
+      </label>
+      <label class="block">
+        <span class="admin-label">Арка по периодам</span>
+        <textarea name="arc" rows="6" class="admin-textarea"></textarea>
+      </label>
+      <label class="block">
+        <span class="admin-label">Заметки</span>
+        <textarea name="notes" rows="5" class="admin-textarea"></textarea>
+      </label>
+    </section>
+
+    <section data-type-form="location" class="hidden space-y-4">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label>
+          <span class="admin-label">Вид</span>
+          <select name="kind" class="admin-select">
+            <option>планета</option>
+            <option>измерение</option>
+            <option>город</option>
+          </select>
+        </label>
+        <label><span class="admin-label">Система</span><input name="system" class="admin-input" /></label>
+        <label><span class="admin-label">Популяция</span><input name="population" class="admin-input" /></label>
+      </div>
+      <div>
+        <span class="admin-label">Связанные персонажи</span>
+        <div class="entity-picker" data-name="relatedCharacters" data-types="character">
+          <input class="picker-input admin-input" />
+          <div class="picker-suggest hidden rounded-xl border border-line bg-ink"></div>
+          <div class="picker-chips mt-2 flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+      <label class="block"><span class="admin-label">Описание</span><textarea name="notes" rows="6" class="admin-textarea"></textarea></label>
+      <label class="block"><span class="admin-label">Центральный Вселенский Город</span><textarea name="capital" rows="2" class="admin-textarea"></textarea></label>
+      <label class="block"><span class="admin-label">Список городов</span><textarea name="cities" rows="2" class="admin-textarea"></textarea></label>
+    </section>
+
+    <section data-type-form="faction" class="hidden space-y-4">
+      <label><span class="admin-label">Цель</span><input name="goal" class="admin-input" /></label>
+      <label><span class="admin-label">Период существования</span><input name="existencePeriod" class="admin-input" /></label>
+      <div>
+        <span class="admin-label">Участники</span>
+        <div class="entity-picker" data-name="members" data-types="character">
+          <input class="picker-input admin-input" />
+          <div class="picker-suggest hidden rounded-xl border border-line bg-ink"></div>
+          <div class="picker-chips mt-2 flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+      <label class="block"><span class="admin-label">Общая информация</span><textarea name="notes" rows="8" class="admin-textarea"></textarea></label>
+    </section>
+
+    <section data-type-form="event" class="hidden space-y-4">
+      <label><span class="admin-label">Дата и время</span><input name="datetime" class="admin-input" /></label>
+      <div>
+        <span class="admin-label">Место</span>
+        <div class="entity-picker" data-name="place" data-types="location" data-multiple="false">
+          <input class="picker-input admin-input" />
+          <div class="picker-suggest hidden rounded-xl border border-line bg-ink"></div>
+          <div class="picker-chips mt-2 flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+      <div>
+        <span class="admin-label">Период</span>
+        <div class="entity-picker" data-name="period" data-types="period" data-multiple="false">
+          <input class="picker-input admin-input" placeholder="Первая вселенская война" />
+          <div class="picker-suggest hidden rounded-xl border border-line bg-ink"></div>
+          <div class="picker-chips mt-2 flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+      <div>
+        <span class="admin-label">Участники</span>
+        <div class="entity-picker" data-name="participants" data-types="character,faction,location">
+          <input class="picker-input admin-input" />
+          <div class="picker-suggest hidden rounded-xl border border-line bg-ink"></div>
+          <div class="picker-chips mt-2 flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+      <label class="block"><span class="admin-label">Где и когда (дополнительно)</span><textarea name="whenNotes" rows="3" class="admin-textarea"></textarea></label>
+      <label class="block"><span class="admin-label">Причина</span><textarea name="cause" rows="3" class="admin-textarea"></textarea></label>
+      <label class="block"><span class="admin-label">Что произошло</span><textarea name="summary" rows="5" class="admin-textarea"></textarea></label>
+      <label class="block"><span class="admin-label">Последствия</span><textarea name="aftermath" rows="4" class="admin-textarea"></textarea></label>
+      <label class="block"><span class="admin-label">Заметки / связанные материалы</span><textarea name="notes" rows="3" class="admin-textarea"></textarea></label>
+    </section>
+
+    <section data-type-form="period" class="hidden space-y-4">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label><span class="admin-label">От</span><input name="from" class="admin-input" /></label>
+        <label><span class="admin-label">До</span><input name="to" class="admin-input" /></label>
+        <label><span class="admin-label">Эпоха</span><input name="epoch" class="admin-input" placeholder="VI" /></label>
+        <label><span class="admin-label">Диапазон</span><input name="range" class="admin-input" /></label>
+      </div>
+      <div>
+        <span class="admin-label">Ключевые события</span>
+        <div class="entity-picker" data-name="events" data-types="event">
+          <input class="picker-input admin-input" />
+          <div class="picker-suggest hidden rounded-xl border border-line bg-ink"></div>
+          <div class="picker-chips mt-2 flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+      <div>
+        <span class="admin-label">Фракции</span>
+        <div class="entity-picker" data-name="factions" data-types="faction,character,location">
+          <input class="picker-input admin-input" />
+          <div class="picker-suggest hidden rounded-xl border border-line bg-ink"></div>
+          <div class="picker-chips mt-2 flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+      <label class="block"><span class="admin-label">Описание эпохи</span><textarea name="notes" rows="8" class="admin-textarea"></textarea></label>
+    </section>
+
+    <section data-type-form="rule" class="hidden space-y-4">
+      <label class="block"><span class="admin-label">Формулировка</span><textarea name="statement" rows="5" class="admin-textarea"></textarea></label>
+      <label class="block"><span class="admin-label">Как это работает</span><textarea name="how" rows="8" class="admin-textarea"></textarea></label>
+      <label class="block"><span class="admin-label">Ограничения / цена</span><textarea name="limits" rows="4" class="admin-textarea"></textarea></label>
+      <label class="block"><span class="admin-label">Открытые детали</span><textarea name="openQuestions" rows="4" class="admin-textarea"></textarea></label>
+      <div>
+        <span class="admin-label">Примеры в сюжете</span>
+        <div class="entity-picker" data-name="examples" data-types="event,character,period,location,faction,rule">
+          <input class="picker-input admin-input" />
+          <div class="picker-suggest hidden rounded-xl border border-line bg-ink"></div>
+          <div class="picker-chips mt-2 flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="flex flex-wrap items-center gap-4">
+      <button id="admin-submit" type="submit" class="rounded-xl bg-gold px-5 py-3 font-medium text-void hover:bg-gold-soft">
+        Создать файл в Obsidian
+      </button>
+      <p id="canon-result" class="hidden text-sm text-mist"></p>
+    </div>
+  </form>
+</AdminLayout>
+
+<script>
+  import { bootAdmin } from "../../components/admin/admin-client";
+  bootAdmin();
+</script>

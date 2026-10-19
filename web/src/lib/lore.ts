@@ -131,7 +131,7 @@ export function isCollectionKey(value: string | undefined): value is CollectionK
   return !!value && value in COLLECTIONS;
 }
 
-function vaultRoot(): string {
+export function getVaultRoot(): string {
   const candidates = [
     path.resolve(process.cwd(), "../Universe War History"),
     path.resolve(process.cwd(), "Universe War History"),
@@ -182,6 +182,7 @@ function firstHeading(body: string): string | null {
 function excerptFrom(body: string): string {
   const text = body
     .replace(/^#.+$/gm, "")
+    .replace(/!\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, "")
     .replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, "$1")
     .replace(/[#>*_`]/g, "")
     .replace(/\n+/g, " ")
@@ -239,8 +240,24 @@ function pickFm(data: Record<string, unknown>, ...paths: string[]): string | und
   return undefined;
 }
 
+export function canonImageUrl(filename: string | undefined): string | undefined {
+  if (!filename) return undefined;
+  const name = filename.replaceAll("\\", "/").split("/").pop()?.trim();
+  if (!name) return undefined;
+  return `/canon-images/${encodeURIComponent(name)}`;
+}
+
+function portraitFile(data: Record<string, unknown>, body: string): string | undefined {
+  const fromFm = pickFm(data, "портрет", "portrait", "image");
+  const raw =
+    fromFm?.replace(/^!\[\[/, "").replace(/\]\]$/, "") ||
+    body.match(/!\[\[([^\]|]+\.(?:png|jpe?g|webp|gif|avif))(?:\|[^\]]+)?\]\]/i)?.[1];
+  const name = raw?.replaceAll("\\", "/").split("/").pop()?.trim();
+  return name || undefined;
+}
+
 function buildIndex(): LoreIndex {
-  const root = vaultRoot();
+  const root = getVaultRoot();
   const files = walkMarkdown(root);
   const usedSlugs = new Set<string>();
   const rawEntities: LoreEntity[] = [];
@@ -294,7 +311,10 @@ function buildIndex(): LoreIndex {
       names,
       wikiLinks: extractWikiLinks(body),
       extra: {
-        role: bulletField(body, "Роль"),
+        role: pickFm(data, "роль", "role") || bulletField(body, "Роль"),
+        race: pickFm(data, "раса", "race") || bulletField(body, "Раса"),
+        element: pickFm(data, "стихия", "element") || bulletField(body, "Стихия"),
+        cycle: pickFm(data, "цикл перерождений", "cycle") || bulletField(body, "Цикл перерождений"),
         secondName,
         gender: pickFm(data, "пол", "gender"),
         speciesAge: pickFm(data, "возраст", "age") || bulletField(body, "Возраст/вид") || bulletField(body, "Возраст"),
@@ -333,11 +353,16 @@ function buildIndex(): LoreIndex {
         eventDate: pickFm(data, "дата и время", "date"),
         eventPlace: pickFm(data, "место", "location"),
         period: pickFm(data, "период", "period"),
+        epoch: pickFm(data, "эпоха", "epoch"),
+        range: pickFm(data, "range"),
         participants: pickFm(data, "участники", "participants", "members"),
         allies: pickFm(data, "связи.друзья", "relations.friends") || bulletField(body, "Союзники") || bulletField(body, "Друзья"),
         enemies: pickFm(data, "связи.враги", "relations.enemies") || bulletField(body, "Враги"),
         family: pickFm(data, "связи.семья", "relations.family") || bulletField(body, "Семья/близкие") || bulletField(body, "Семья"),
         partners: pickFm(data, "связи.напарники", "relations.partners") || bulletField(body, "Напарники"),
+        romance: pickFm(data, "связи.романтика", "relations.romance") || bulletField(body, "Романтика"),
+        portrait: portraitFile(data, body),
+        portraitUrl: canonImageUrl(portraitFile(data, body)),
       },
     });
   }
@@ -381,6 +406,7 @@ function buildIndex(): LoreIndex {
       entity.extra.enemies,
       entity.extra.family,
       entity.extra.partners,
+      entity.extra.romance,
       entity.extra.relatedCharacters,
       entity.extra.participants,
       entity.extra.eventPlace,

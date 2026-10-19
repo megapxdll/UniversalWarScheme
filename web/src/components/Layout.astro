@@ -54,6 +54,9 @@ const pageTitle = title === "Universe War History" ? title : `${title} — Unive
               <li><a class="hover:text-gold" href="/events">События</a></li>
               <li><a class="hover:text-gold" href="/graph">Граф</a></li>
               <li><a class="hover:text-gold" href="/search">Поиск</a></li>
+              {import.meta.env.DEV && (
+                <li><a class="hover:text-gold" href="/admin">Админка</a></li>
+              )}
             </ul>
           </nav>
         </details>
@@ -65,6 +68,9 @@ const pageTitle = title === "Universe War History" ? title : `${title} — Unive
           <a class="hover:text-gold" href="/events">События</a>
           <a class="hover:text-gold" href="/graph">Граф</a>
           <a class="hover:text-gold" href="/search">Поиск</a>
+          {import.meta.env.DEV && (
+            <a class="hover:text-gold" href="/admin">Админка</a>
+          )}
         </nav>
       </div>
     </header>

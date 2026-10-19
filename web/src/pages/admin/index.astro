@@ -1,0 +1,65 @@
+---
+import AdminLayout from "../../components/admin/AdminLayout.astro";
+import { COLLECTIONS, entitiesOf, TYPE_LABELS, ENTITY_TYPES } from "../../lib/lore";
+
+const createTypes = [
+  { type: "character", href: "/admin/new?type=character", title: "Персонаж", hint: "Профиль, внешность, боевая статистика, связи и картинка" },
+  { type: "location", href: "/admin/new?type=location", title: "Локация", hint: "Планета, измерение, город и связанные персонажи" },
+  { type: "faction", href: "/admin/new?type=faction", title: "Фракция", hint: "Организация, цель, участники, период" },
+  { type: "event", href: "/admin/new?type=event", title: "Событие", hint: "Дата, место, период, участники" },
+  { type: "period", href: "/admin/new?type=period", title: "Период", hint: "Эпоха, войны, ключевые события" },
+  { type: "rule", href: "/admin/new?type=rule", title: "Правило мира", hint: "Кут и законы вселенной" },
+];
+
+const directories = ENTITY_TYPES.map((type) => ({
+  type,
+  title: TYPE_LABELS[type],
+  count: entitiesOf(type).length,
+  href: `/admin/catalog?type=${type}`,
+}));
+---
+
+<AdminLayout title="Канон">
+  <p class="text-xs uppercase tracking-[0.28em] text-gold">Obsidian + энциклопедия</p>
+  <h1 class="mt-3 font-display text-5xl text-gold-soft">Админка канона</h1>
+  <p class="mt-4 max-w-2xl text-dim">
+    Справочники открывают уже созданные записи для правок. Новая форма пишет markdown в vault, ставит
+    <code>[[вики-ссылки]]</code> и дописывает обратные связи.
+  </p>
+
+  <section class="mt-10">
+    <h2 class="font-display text-3xl text-gold-soft">Справочники</h2>
+    <p class="mt-2 text-sm text-dim">Всё, что уже лежит в vault — открыть, поправить, сменить картинку персонажа.</p>
+    <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        directories.map((item) => (
+          <a href={item.href} class="rounded-2xl border border-line bg-panel/80 p-5 hover:border-gold/50">
+            <div class="font-display text-3xl text-gold">{item.count}</div>
+            <div class="mt-1 text-gold-soft">{item.title}</div>
+            <p class="mt-2 text-sm text-dim">Открыть список и править</p>
+          </a>
+        ))
+      }
+    </div>
+    <a href="/admin/catalog" class="mt-4 inline-block text-sm text-gold hover:text-gold-soft">Все записи →</a>
+  </section>
+
+  <section class="mt-12">
+    <h2 class="font-display text-3xl text-gold-soft">Создать запись</h2>
+    <div class="mt-5 grid gap-4 sm:grid-cols-2">
+      {
+        createTypes.map((item) => (
+          <a href={item.href} class="rounded-2xl border border-line bg-panel/80 p-5 hover:border-gold/50">
+            <div class="font-display text-2xl text-gold-soft">{item.title}</div>
+            <p class="mt-2 text-sm text-dim">{item.hint}</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="mt-12 rounded-2xl border border-line bg-ink/60 p-5 text-sm text-dim">
+    Сейчас в каноне: {entitiesOf("character").length} персонажей, {entitiesOf("location").length} локаций, {entitiesOf("faction").length} фракций, {entitiesOf(COLLECTIONS.events.type).length} событий, {entitiesOf("period").length} периодов, {entitiesOf("rule").length} правил.
+    Админка пишет файлы при <code>npm run dev</code>.
+  </section>
+</AdminLayout>

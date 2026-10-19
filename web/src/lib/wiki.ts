@@ -18,6 +18,8 @@ export function extractWikiLinks(markdown: string): WikiLink[] {
   for (const match of markdown.matchAll(WIKI_RE)) {
     const target = match[1]?.trim() ?? "";
     if (isPlaceholder(target)) continue;
+    if (match.index && markdown[match.index - 1] === "!") continue;
+    if (/\.(png|jpe?g|webp|gif|avif|svg)$/i.test(target)) continue;
     const key = target.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);

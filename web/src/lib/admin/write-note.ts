@@ -1,0 +1,421 @@
+import fs from "node:fs";
+import path from "node:path";
+import { getVaultRoot, type EntityType } from "../lore";
+import { dumpScalar, dumpWikiLine, dumpWikiList, safeNoteName, wiki } from "./yaml";
+
+export const TYPE_FOLDERS: Record<EntityType, string> = {
+  character: "01_Characters",
+  event: "02_Events",
+  period: "03_Periods",
+  location: "04_Locations",
+  faction: "05_Factions",
+  rule: "06_Rules",
+};
+
+export const CHARACTER_FOLDERS = [
+  "Titania Characters",
+  "The Earth Characters",
+  "New World Characters",
+] as const;
+
+export type CharacterFolder = (typeof CHARACTER_FOLDERS)[number];
+
+export type CreatePayload = {
+  type: EntityType;
+  title: string;
+  characterFolder?: string;
+  aliases?: string[];
+  fields: Record<string, unknown>;
+};
+
+function list(value: unknown): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
+  return String(value)
+    .split(/[,;]/)
+    .map((part) => part.replaceAll("[", "").replaceAll("]", "").trim())
+    .filter(Boolean);
+}
+
+function field(fields: Record<string, unknown>, key: string): string {
+  const value = fields[key];
+  if (value == null) return "";
+  return String(value).trim();
+}
+
+function mdList(names: string[]): string {
+  const items = names.map((name) => wiki(name)).filter(Boolean);
+  return items.length ? items.map((item) => `  - ${item}`).join("\n") : "  -";
+}
+
+export function resolveNotePath(payload: CreatePayload): string {
+  const title = safeNoteName(payload.title);
+  if (!title) throw new Error("Нужно имя записи");
+  const root = getVaultRoot();
+  const typeFolder = TYPE_FOLDERS[payload.type];
+  if (payload.type === "character") {
+    const sub = payload.characterFolder?.trim() || "New World Characters";
+    return path.join(root, typeFolder, sub, `${title}.md`);
+  }
+  return path.join(root, typeFolder, `${title}.md`);
+}
+
+function portraitName(fields: Record<string, unknown>): string {
+  return field(fields, "portrait")
+    .replace(/^!\[\[/, "")
+    .replace(/\]\]$/, "")
+    .replaceAll("\\", "/")
+    .split("/")
+    .pop() ?? "";
+}
+
+function characterMarkdown(title: string, aliases: string[], fields: Record<string, unknown>): string {
+  const family = list(fields.family);
+  const romance = list(fields.romance);
+  const friends = list(fields.friends);
+  const enemies = list(fields.enemies);
+  const partners = list(fields.partners);
+  const factions = list(fields.faction);
+  const events = list(fields.events);
+  const birthplace = field(fields, "birthplace");
+  const portrait = portraitName(fields);
+  const lookNotes = field(fields, "lookNotes");
+  const stats = ["strength", "speed", "stamina", "intellect"].map((key) => Number(fields[key]));
+  const autoOverall =
+    field(fields, "overall") ||
+    (stats.every((n) => Number.isFinite(n) && n > 0) ? String(stats.reduce((a, b) => a + b, 0)) : "");
+
+  return `---
+type: character
+status: draft
+tags:
+  - character
+aliases: ${aliases.length ? `[${aliases.map((item) => dumpScalar(item)).join(", ")}]` : "[]"}
+портрет: ${dumpScalar(portrait)}
+
+имя: ${dumpScalar(title)}
+второе имя: ${dumpScalar(field(fields, "secondName"))}
+пол: ${dumpScalar(field(fields, "gender"))}
+возраст: ${dumpScalar(field(fields, "age"))}
+дата рождения: ${dumpScalar(field(fields, "birthDate"))}
+место рождения: ${dumpScalar(wiki(birthplace))}
+дата смерти: ${dumpScalar(field(fields, "deathDate"))}
+жизненный статус: ${dumpScalar(field(fields, "lifeStatus") || "жив")}
+фракция: ${dumpScalar(dumpWikiLine(factions))}
+раса: ${dumpScalar(field(fields, "race"))}
+стихия: ${dumpScalar(field(fields, "element"))}
+роль: ${dumpScalar(field(fields, "role"))}
+цикл перерождений: ${dumpScalar(field(fields, "cycle"))}
+
+внешность:
+  рост: ${dumpScalar(field(fields, "height"))}
+  вес: ${dumpScalar(field(fields, "weight"))}
+  тип волос: ${dumpScalar(field(fields, "hairType"))}
+  цвет волос: ${dumpScalar(field(fields, "hairColor"))}
+  цвет глаз: ${dumpScalar(field(fields, "eyeColor"))}
+  телосложение: ${dumpScalar(field(fields, "build"))}
+
+боевая статистика:
+  тип способностей: ${dumpScalar(field(fields, "abilityType"))}
+  основное оружие: ${dumpScalar(field(fields, "weapon"))}
+  боевой стиль: ${dumpScalar(field(fields, "fightingStyle"))}
+  параметры:
+    сила: ${dumpScalar(field(fields, "strength"))}
+    скорость: ${dumpScalar(field(fields, "speed"))}
+    выносливость: ${dumpScalar(field(fields, "stamina"))}
+    интеллект: ${dumpScalar(field(fields, "intellect"))}
+    общий показатель: ${dumpScalar(autoOverall)}
+
+связи:
+  семья: ${dumpWikiList(family)}
+  романтика: ${dumpWikiList(romance)}
+  друзья: ${dumpWikiList(friends)}
+  враги: ${dumpWikiList(enemies)}
+  напарники: ${dumpWikiList(partners)}
+---
+
+# ${title}
+${portrait ? `\n![[${portrait}]]\n` : ""}
+## Профиль
+- Имя: ${title}
+- Второе имя: ${field(fields, "secondName")}
+- Пол: ${field(fields, "gender")}
+- Возраст: ${field(fields, "age")}
+- Дата рождения: ${field(fields, "birthDate")}
+- Место рождения: ${wiki(birthplace)}
+- Дата смерти: ${field(fields, "deathDate")}
+- Жизненный статус: ${field(fields, "lifeStatus") || "жив"}
+- Фракция: ${dumpWikiLine(factions)}
+- Раса: ${field(fields, "race")}
+- Стихия: ${field(fields, "element")}
+- Роль: ${field(fields, "role")}
+- Цикл перерождений: ${field(fields, "cycle")}
+
+## Внешность
+- Рост: ${field(fields, "height")}
+- Вес: ${field(fields, "weight")}
+- Тип волос: ${field(fields, "hairType")}
+- Цвет волос: ${field(fields, "hairColor")}
+- Цвет глаз: ${field(fields, "eyeColor")}
+- Телосложение: ${field(fields, "build")}
+${lookNotes ? `\n${lookNotes}\n` : ""}
+## Боевая статистика
+- Тип способностей: ${field(fields, "abilityType")}
+- Основное оружие: ${field(fields, "weapon")}
+- Боевой стиль: ${field(fields, "fightingStyle")}
+- Сила: ${field(fields, "strength")}
+- Скорость: ${field(fields, "speed")}
+- Выносливость: ${field(fields, "stamina")}
+- Интеллект: ${field(fields, "intellect")}
+- Общий показатель: ${autoOverall}
+
+## Связи
+- Семья:
+${mdList(family)}
+- Романтика:
+${mdList(romance)}
+- Друзья:
+${mdList(friends)}
+- Враги:
+${mdList(enemies)}
+- Напарники:
+${mdList(partners)}
+
+## Характер
+${field(fields, "character") || "-"}
+
+## Арка по периодам
+${field(fields, "arc") || "-"}
+
+## Участие в событиях
+${events.length ? events.map((name) => `- ${wiki(name)}`).join("\n") : "-"}
+
+## Заметки
+${field(fields, "notes") || "-"}
+`;
+}
+
+function locationMarkdown(title: string, aliases: string[], fields: Record<string, unknown>): string {
+  const related = list(fields.relatedCharacters);
+  return `---
+type: location
+status: draft
+tags:
+  - location
+aliases: ${aliases.length ? `[${aliases.map((item) => dumpScalar(item)).join(", ")}]` : "[]"}
+
+название: ${dumpScalar(title)}
+вид: ${dumpScalar(field(fields, "kind") || "планета")}
+популяция: ${dumpScalar(field(fields, "population"))}
+система: ${dumpScalar(field(fields, "system"))}
+связанные персонажи: ${dumpWikiList(related)}
+---
+
+# ${title}
+
+## Сводка
+- Название: ${title}
+- Вид: ${field(fields, "kind") || "планета"}
+- Система: ${field(fields, "system")}
+- Популяция: ${field(fields, "population")}
+
+## Связанные персонажи
+${related.length ? related.map((name) => `- ${wiki(name)}`).join("\n") : "-"}
+
+## Описание
+${field(fields, "notes") || "-"}
+
+## Центральный Вселенский Город
+${field(fields, "capital") || "-"}
+
+## Список городов
+${field(fields, "cities") || "-"}
+`;
+}
+
+function factionMarkdown(title: string, aliases: string[], fields: Record<string, unknown>): string {
+  const members = list(fields.members);
+  const portrait = portraitName(fields);
+  return `---
+type: faction
+status: draft
+tags:
+  - faction
+aliases: ${aliases.length ? `[${aliases.map((item) => dumpScalar(item)).join(", ")}]` : "[]"}
+
+имя: ${dumpScalar(title)}
+портрет: ${dumpScalar(portrait)}
+цель: ${dumpScalar(field(fields, "goal"))}
+период существования: ${dumpScalar(field(fields, "existencePeriod"))}
+участники: ${dumpWikiList(members)}
+---
+
+# ${title}
+${portrait ? `\n![[${portrait}]]\n` : ""}
+## Общая информация
+${field(fields, "notes") || "-"}
+
+## Цель
+${field(fields, "goal") || "-"}
+
+## Участники
+${members.length ? members.map((name) => `- ${wiki(name)}`).join("\n") : "-"}
+
+## Период существования
+${field(fields, "existencePeriod") || "-"}
+`;
+}
+
+function eventMarkdown(title: string, aliases: string[], fields: Record<string, unknown>): string {
+  const participants = list(fields.participants);
+  return `---
+type: event
+status: draft
+tags:
+  - event
+aliases: ${aliases.length ? `[${aliases.map((item) => dumpScalar(item)).join(", ")}]` : "[]"}
+
+имя: ${dumpScalar(title)}
+дата и время: ${dumpScalar(field(fields, "datetime"))}
+место: ${dumpScalar(wiki(field(fields, "place")))}
+период: ${dumpScalar(wiki(field(fields, "period")))}
+участники: ${dumpWikiList(participants)}
+---
+
+# ${title}
+
+## Где и когда
+- Имя события: ${title}
+- Дата и время: ${field(fields, "datetime")}
+- Место: ${wiki(field(fields, "place"))}
+- Период: ${wiki(field(fields, "period"))}
+${field(fields, "whenNotes") ? `${field(fields, "whenNotes")}\n` : ""}
+
+## Участники
+${participants.length ? participants.map((name) => `- ${wiki(name)}`).join("\n") : "-"}
+
+## Суть события
+**Причина:** ${field(fields, "cause")}
+**Что произошло:** ${field(fields, "summary")}
+**Последствия:** ${field(fields, "aftermath")}
+
+## Связанные материалы
+${field(fields, "notes") || "-"}
+`;
+}
+
+function periodMarkdown(title: string, aliases: string[], fields: Record<string, unknown>): string {
+  const events = list(fields.events);
+  const factions = list(fields.factions);
+  return `---
+type: period
+status: draft
+tags:
+  - period
+aliases: ${aliases.length ? `[${aliases.map((item) => dumpScalar(item)).join(", ")}]` : "[]"}
+range: ${dumpScalar(field(fields, "range"))}
+эпоха: ${dumpScalar(field(fields, "epoch"))}
+---
+
+# ${title}
+
+## Границы периода
+- От: ${field(fields, "from")}
+- До: ${field(fields, "to")}
+
+## Ключевые события
+${events.length ? events.map((name) => `- ${wiki(name)}`).join("\n") : "-"}
+
+## Главные силы/фракции
+${factions.length ? factions.map((name) => `- ${wiki(name)}`).join("\n") : "-"}
+
+## Краткое описание эпохи
+${field(fields, "notes") || "-"}
+`;
+}
+
+function ruleMarkdown(title: string, fields: Record<string, unknown>): string {
+  const examples = list(fields.examples);
+  const portrait = portraitName(fields);
+  return `---
+type: rule
+status: draft
+tags:
+  - rule
+портрет: ${dumpScalar(portrait)}
+---
+
+# ${title}
+${portrait ? `\n![[${portrait}]]\n` : ""}
+## Формулировка правила
+${field(fields, "statement") || "-"}
+
+## Как это работает
+${field(fields, "how") || "-"}
+
+## Ограничения / цена
+${field(fields, "limits") || "-"}
+
+## Примеры в сюжете
+${examples.length ? examples.map((name) => `- ${wiki(name)}`).join("\n") : "-"}
+
+## Открытые детали
+${field(fields, "openQuestions") || "-"}
+`;
+}
+
+export function renderNote(payload: CreatePayload): string {
+  const title = safeNoteName(payload.title);
+  const aliases = list(payload.aliases);
+  switch (payload.type) {
+    case "character":
+      return characterMarkdown(title, aliases, payload.fields);
+    case "location":
+      return locationMarkdown(title, aliases, payload.fields);
+    case "faction":
+      return factionMarkdown(title, aliases, payload.fields);
+    case "event":
+      return eventMarkdown(title, aliases, payload.fields);
+    case "period":
+      return periodMarkdown(title, aliases, payload.fields);
+    case "rule":
+      return ruleMarkdown(title, payload.fields);
+    default:
+      throw new Error("Неизвестный тип записи");
+  }
+}
+
+function sameFile(a: string, b: string): boolean {
+  return path.resolve(a) === path.resolve(b);
+}
+
+export function writeNote(
+  payload: CreatePayload,
+  options?: { sourcePath?: string },
+): { absolutePath: string; relativePath: string } {
+  const nextPath = resolveNotePath(payload);
+  const vault = path.resolve(getVaultRoot());
+  const nextRel = path.relative(vault, nextPath);
+  if (!nextRel || nextRel.startsWith("..") || path.isAbsolute(nextRel)) {
+    throw new Error("Путь вне vault");
+  }
+  const prevPath = options?.sourcePath ? path.resolve(vault, options.sourcePath) : undefined;
+  if (prevPath) {
+    const inside = path.relative(vault, prevPath);
+    if (!inside || inside.startsWith("..") || path.isAbsolute(inside)) {
+      throw new Error("Путь вне vault");
+    }
+  }
+  if (fs.existsSync(nextPath) && (!prevPath || !sameFile(nextPath, prevPath))) {
+    throw new Error(`Файл уже есть: ${path.relative(vault, nextPath)}`);
+  }
+  fs.mkdirSync(path.dirname(nextPath), { recursive: true });
+  fs.writeFileSync(nextPath, renderNote(payload), "utf8");
+  if (prevPath && fs.existsSync(prevPath) && !sameFile(prevPath, nextPath)) {
+    fs.unlinkSync(prevPath);
+  }
+  return {
+    absolutePath: nextPath,
+    relativePath: path.relative(vault, nextPath).replaceAll("\\", "/"),
+  };
+}

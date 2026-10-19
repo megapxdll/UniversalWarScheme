@@ -1,0 +1,82 @@
+---
+import AdminLayout from "../../components/admin/AdminLayout.astro";
+import { ENTITY_TYPES, TYPE_LABELS, getLore } from "../../lib/lore";
+
+const entities = getLore().entities;
+const tabs = [{ type: "all", label: "Все", count: entities.length }, ...ENTITY_TYPES.map((type) => ({
+  type,
+  label: TYPE_LABELS[type],
+  count: entities.filter((entity) => entity.type === type).length,
+}))];
+---
+
+<AdminLayout title="Справочники">
+  <a href="/admin" class="text-sm text-gold hover:text-gold-soft">← К админке</a>
+  <h1 class="mt-3 font-display text-4xl text-gold-soft">Справочники канона</h1>
+  <p class="mt-3 max-w-2xl text-dim">
+    Уже созданные записи из vault. Откройте карточку, чтобы поправить поля, связи или картинку персонажа.
+  </p>
+
+  <div class="mt-6 flex flex-wrap gap-2" id="catalog-tabs">
+    {
+      tabs.map((tab) => (
+        <button
+          type="button"
+          data-type-filter={tab.type}
+          class="catalog-tab rounded-full border border-line px-3 py-1.5 text-sm text-mist hover:border-gold/50"
+        >
+          {tab.label} ({tab.count})
+        </button>
+      ))
+    }
+  </div>
+
+  <label class="mt-5 block max-w-md">
+    <span class="admin-label">Поиск</span>
+    <input id="catalog-q" class="admin-input" placeholder="Имя, алиас, путь…" />
+  </label>
+
+  <div id="catalog-list" class="mt-6 space-y-3">
+    {
+      entities.map((entity) => (
+        <article
+          class="catalog-row flex gap-4 rounded-2xl border border-line bg-panel/80 p-4"
+          data-type={entity.type}
+          data-search={[entity.title, ...entity.names, entity.sourcePath, entity.excerpt].join(" ").toLowerCase()}
+        >
+          {entity.extra.portraitUrl ? (
+            <img
+              src={entity.extra.portraitUrl}
+              alt=""
+              class={entity.type === "character"
+                ? "h-16 w-14 shrink-0 rounded-lg object-cover bg-ink"
+                : "h-16 w-28 shrink-0 rounded-lg object-cover object-[center_20%] bg-ink"}
+            />
+          ) : entity.type === "character" ? (
+            <div class="h-16 w-14 shrink-0 rounded-lg border border-line bg-ink/80" />
+          ) : null}
+          <div class="min-w-0 flex-1">
+            <div class="text-xs uppercase tracking-[0.16em] text-dim">{TYPE_LABELS[entity.type]}</div>
+            <h2 class="font-display text-2xl text-gold-soft">{entity.title}</h2>
+            {entity.excerpt && <p class="mt-1 line-clamp-2 text-sm text-dim">{entity.excerpt}</p>}
+            <p class="truncate text-xs text-dim">{entity.sourcePath}</p>
+          </div>
+          <div class="flex shrink-0 flex-col items-end justify-center gap-2 text-sm">
+            <a class="text-gold hover:text-gold-soft" href={`/admin/new?path=${encodeURIComponent(entity.sourcePath)}`}>
+              Править
+            </a>
+            <a class="text-dim hover:text-gold" href={entity.href}>
+              На сайте
+            </a>
+          </div>
+        </article>
+      ))
+    }
+  </div>
+  <p id="catalog-empty" class="mt-8 hidden text-dim">Ничего не найдено.</p>
+</AdminLayout>
+
+<script>
+  import { bootCatalog } from "../../components/admin/admin-client";
+  bootCatalog();
+</script>
