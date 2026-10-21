@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { sitePath } from "../lib/paths";
 
 interface Props {
   title: string;
@@ -9,6 +10,15 @@ interface Props {
 const { title, description = "Канон вселенной Universe War History — персонажи, миры, фракции и законы силы." } =
   Astro.props;
 const pageTitle = title === "Universe War History" ? title : `${title} — Universe War History`;
+const nav = [
+  { href: sitePath("/characters"), label: "Персонажи" },
+  { href: sitePath("/locations"), label: "Локации" },
+  { href: sitePath("/factions"), label: "Фракции" },
+  { href: sitePath("/rules"), label: "Правила" },
+  { href: sitePath("/events"), label: "События" },
+  { href: sitePath("/graph"), label: "Граф" },
+  { href: sitePath("/search"), label: "Поиск" },
+];
 ---
 
 <!doctype html>
@@ -20,7 +30,7 @@ const pageTitle = title === "Universe War History" ? title : `${title} — Unive
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href={sitePath("/favicon.svg")} type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -38,7 +48,7 @@ const pageTitle = title === "Universe War History" ? title : `${title} — Unive
     </a>
     <header class="border-b border-line/80 bg-ink/70 backdrop-blur">
       <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
-        <a href="/" class="font-display text-2xl tracking-wide text-gold-soft">
+        <a href={sitePath("/")} class="font-display text-2xl tracking-wide text-gold-soft">
           Universe War History
         </a>
         <details class="relative md:hidden">
@@ -47,29 +57,21 @@ const pageTitle = title === "Universe War History" ? title : `${title} — Unive
           </summary>
           <nav class="absolute right-0 z-20 mt-2 min-w-48 rounded-lg border border-line bg-panel p-3 shadow-xl">
             <ul class="grid gap-2 text-sm">
-              <li><a class="hover:text-gold" href="/characters">Персонажи</a></li>
-              <li><a class="hover:text-gold" href="/locations">Локации</a></li>
-              <li><a class="hover:text-gold" href="/factions">Фракции</a></li>
-              <li><a class="hover:text-gold" href="/rules">Правила</a></li>
-              <li><a class="hover:text-gold" href="/events">События</a></li>
-              <li><a class="hover:text-gold" href="/graph">Граф</a></li>
-              <li><a class="hover:text-gold" href="/search">Поиск</a></li>
+              {nav.map((item) => (
+                <li><a class="hover:text-gold" href={item.href}>{item.label}</a></li>
+              ))}
               {import.meta.env.DEV && (
-                <li><a class="hover:text-gold" href="/admin">Админка</a></li>
+                <li><a class="hover:text-gold" href={sitePath("/admin")}>Админка</a></li>
               )}
             </ul>
           </nav>
         </details>
         <nav class="hidden items-center gap-5 text-sm text-mist md:flex">
-          <a class="hover:text-gold" href="/characters">Персонажи</a>
-          <a class="hover:text-gold" href="/locations">Локации</a>
-          <a class="hover:text-gold" href="/factions">Фракции</a>
-          <a class="hover:text-gold" href="/rules">Правила</a>
-          <a class="hover:text-gold" href="/events">События</a>
-          <a class="hover:text-gold" href="/graph">Граф</a>
-          <a class="hover:text-gold" href="/search">Поиск</a>
+          {nav.map((item) => (
+            <a class="hover:text-gold" href={item.href}>{item.label}</a>
+          ))}
           {import.meta.env.DEV && (
-            <a class="hover:text-gold" href="/admin">Админка</a>
+            <a class="hover:text-gold" href={sitePath("/admin")}>Админка</a>
           )}
         </nav>
       </div>

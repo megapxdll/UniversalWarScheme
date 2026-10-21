@@ -1,6 +1,7 @@
 ---
 import AdminLayout from "../../components/admin/AdminLayout.astro";
 import { CHARACTER_FOLDERS } from "../../lib/admin/write-note";
+import { sitePath } from "../../lib/paths";
 
 const types = [
   { id: "character", label: "Персонаж" },
@@ -13,7 +14,7 @@ const types = [
 ---
 
 <AdminLayout title="Запись канона">
-  <a href="/admin/catalog" class="text-sm text-gold hover:text-gold-soft">← К справочникам</a>
+  <a href={sitePath("/admin/catalog")} class="text-sm text-gold hover:text-gold-soft">← К справочникам</a>
   <h1 id="admin-heading" class="mt-3 font-display text-4xl text-gold-soft">Создать в Obsidian</h1>
   <p id="admin-sub" class="mt-2 text-sm text-dim">Новая заметка появится в vault и подхватится энциклопедией.</p>
 

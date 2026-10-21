@@ -1,21 +1,22 @@
 ---
 import AdminLayout from "../../components/admin/AdminLayout.astro";
 import { COLLECTIONS, entitiesOf, TYPE_LABELS, ENTITY_TYPES } from "../../lib/lore";
+import { sitePath } from "../../lib/paths";
 
 const createTypes = [
-  { type: "character", href: "/admin/new?type=character", title: "Персонаж", hint: "Профиль, внешность, боевая статистика, связи и картинка" },
-  { type: "location", href: "/admin/new?type=location", title: "Локация", hint: "Планета, измерение, город и связанные персонажи" },
-  { type: "faction", href: "/admin/new?type=faction", title: "Фракция", hint: "Организация, цель, участники, период" },
-  { type: "event", href: "/admin/new?type=event", title: "Событие", hint: "Дата, место, период, участники" },
-  { type: "period", href: "/admin/new?type=period", title: "Период", hint: "Эпоха, войны, ключевые события" },
-  { type: "rule", href: "/admin/new?type=rule", title: "Правило мира", hint: "Кут и законы вселенной" },
+  { type: "character", href: sitePath("/admin/new?type=character"), title: "Персонаж", hint: "Профиль, внешность, боевая статистика, связи и картинка" },
+  { type: "location", href: sitePath("/admin/new?type=location"), title: "Локация", hint: "Планета, измерение, город и связанные персонажи" },
+  { type: "faction", href: sitePath("/admin/new?type=faction"), title: "Фракция", hint: "Организация, цель, участники, период" },
+  { type: "event", href: sitePath("/admin/new?type=event"), title: "Событие", hint: "Дата, место, период, участники" },
+  { type: "period", href: sitePath("/admin/new?type=period"), title: "Период", hint: "Эпоха, войны, ключевые события" },
+  { type: "rule", href: sitePath("/admin/new?type=rule"), title: "Правило мира", hint: "Кут и законы вселенной" },
 ];
 
 const directories = ENTITY_TYPES.map((type) => ({
   type,
   title: TYPE_LABELS[type],
   count: entitiesOf(type).length,
-  href: `/admin/catalog?type=${type}`,
+  href: sitePath(`/admin/catalog?type=${type}`),
 }));
 ---
 
@@ -41,7 +42,7 @@ const directories = ENTITY_TYPES.map((type) => ({
         ))
       }
     </div>
-    <a href="/admin/catalog" class="mt-4 inline-block text-sm text-gold hover:text-gold-soft">Все записи →</a>
+    <a href={sitePath("/admin/catalog")} class="mt-4 inline-block text-sm text-gold hover:text-gold-soft">Все записи →</a>
   </section>
 
   <section class="mt-12">

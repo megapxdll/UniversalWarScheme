@@ -9,6 +9,7 @@ import {
   isCollectionKey,
   TYPE_LABELS,
 } from "../../lib/lore";
+import { sitePath } from "../../lib/paths";
 
 export function getStaticPaths() {
   // Vault notes live outside src/; this re-runs in `astro dev` when the page module reloads.
@@ -27,7 +28,7 @@ const entity = lore.entities.find(
 );
 
 if (!entity) {
-  return Astro.redirect("/404");
+  return Astro.redirect(sitePath("/404"));
 }
 
 const mentionedIn = lore.incoming.get(entity.id) ?? [];
@@ -35,7 +36,7 @@ const collectionMeta = COLLECTIONS[collection];
 ---
 
 <Layout title={entity.title} description={entity.excerpt || `${TYPE_LABELS[entity.type]} канона Universe War History.`}>
-  <a href={`/${collection}`} class="text-sm text-gold hover:text-gold-soft">← {collectionMeta.title}</a>
+  <a href={sitePath(`/${collection}`)} class="text-sm text-gold hover:text-gold-soft">← {collectionMeta.title}</a>
   <div class="mt-4 flex flex-wrap items-start gap-6">
     {
       entity.extra.portraitUrl && entity.type === "character" && (
@@ -57,7 +58,7 @@ const collectionMeta = COLLECTIONS[collection];
       {import.meta.env.DEV && (
         <a
           class="mt-3 inline-block text-sm text-gold hover:text-gold-soft"
-          href={`/admin/new?path=${encodeURIComponent(entity.sourcePath)}`}
+          href={sitePath(`/admin/new?path=${encodeURIComponent(entity.sourcePath)}`)}
         >
           Править в админке
         </a>

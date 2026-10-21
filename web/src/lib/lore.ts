@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
 import { z } from "zod";
+import { sitePath } from "./paths";
 import { slugify } from "./slug";
 import { extractWikiLinks, type WikiLink } from "./wiki";
 
@@ -244,7 +245,7 @@ export function canonImageUrl(filename: string | undefined): string | undefined 
   if (!filename) return undefined;
   const name = filename.replaceAll("\\", "/").split("/").pop()?.trim();
   if (!name) return undefined;
-  return `/canon-images/${encodeURIComponent(name)}`;
+  return sitePath(`/canon-images/${encodeURIComponent(name)}`);
 }
 
 function portraitFile(data: Record<string, unknown>, body: string): string | undefined {
@@ -307,7 +308,7 @@ function buildIndex(): LoreIndex {
       sourcePath: rel.replaceAll("\\", "/"),
       body,
       excerpt: excerptFrom(body),
-      href: `/${collection}/${slug}`,
+      href: sitePath(`/${collection}/${slug}`),
       names,
       wikiLinks: extractWikiLinks(body),
       extra: {

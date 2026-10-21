@@ -5,9 +5,11 @@ import { fileURLToPath } from "node:url";
 
 const projectRoot = fileURLToPath(new URL("..", import.meta.url));
 const vaultDir = fileURLToPath(new URL("../Universe War History", import.meta.url));
+const onGitHubPages = process.env.GITHUB_PAGES === "true";
 
 export default defineConfig({
-  site: "http://localhost:4321",
+  site: onGitHubPages ? "https://megapxdll.github.io" : "http://localhost:4321",
+  base: onGitHubPages ? "/UniversalWarScheme" : "/",
   vite: {
     plugins: [
       tailwindcss(),

@@ -1,5 +1,6 @@
 import { marked } from "marked";
 import type { LoreEntity, LoreIndex } from "./lore";
+import { sitePath } from "./paths";
 import { rewriteWikiLinks } from "./wiki";
 
 marked.setOptions({ gfm: true, breaks: false });
@@ -59,7 +60,7 @@ export function renderEntityHtml(entity: LoreEntity, lore: LoreIndex): string {
     (_all, file: string, alt?: string) => {
       const name = String(file).replaceAll("\\", "/").split("/").pop() ?? "";
       if (!/\.(png|jpe?g|webp|gif|avif)$/i.test(name)) return "";
-      const src = `/canon-images/${encodeURIComponent(name)}`;
+      const src = sitePath(`/canon-images/${encodeURIComponent(name)}`);
       const label = (alt || name.replace(/\.[^.]+$/, "")).trim();
       return `<img src="${src}" alt="${label}" class="lore-portrait" />`;
     },

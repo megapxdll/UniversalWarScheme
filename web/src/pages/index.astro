@@ -2,6 +2,7 @@
 import Layout from "../components/Layout.astro";
 import EntityCard from "../components/EntityCard.astro";
 import { COLLECTIONS, entitiesOf, getLore } from "../lib/lore";
+import { sitePath } from "../lib/paths";
 
 const lore = getLore();
 const featured = lore.entities.slice(0, 6);
@@ -25,7 +26,7 @@ const counts = (Object.keys(COLLECTIONS) as (keyof typeof COLLECTIONS)[]).map((k
   <section class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {
       counts.map((item) => (
-        <a href={`/${item.key}`} class="rounded-2xl border border-line bg-panel/70 p-5 hover:border-gold/40">
+        <a href={sitePath(`/${item.key}`)} class="rounded-2xl border border-line bg-panel/70 p-5 hover:border-gold/40">
           <div class="font-display text-3xl text-gold">{item.count}</div>
           <div class="mt-1 text-mist">{item.title}</div>
         </a>
@@ -36,7 +37,7 @@ const counts = (Object.keys(COLLECTIONS) as (keyof typeof COLLECTIONS)[]).map((k
   <section class="mt-14">
     <div class="mb-6 flex items-end justify-between gap-4">
       <h2 class="font-display text-3xl text-gold-soft">Записи канона</h2>
-      <a href="/search" class="text-sm text-gold hover:text-gold-soft">Открыть поиск</a>
+      <a href={sitePath("/search")} class="text-sm text-gold hover:text-gold-soft">Открыть поиск</a>
     </div>
     <div class="grid gap-4 md:grid-cols-2">
       {featured.map((entity) => <EntityCard entity={entity} />)}

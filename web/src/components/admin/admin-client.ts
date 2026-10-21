@@ -1,3 +1,5 @@
+import { sitePath } from "../../lib/paths";
+
 type CatalogEntity = {
   title: string;
   type: string;
@@ -280,7 +282,7 @@ export async function bootAdmin() {
   if (!form || !typeSelect) return;
 
   try {
-    const response = await fetch("/api/admin/catalog");
+    const response = await fetch(sitePath("/api/admin/catalog"));
     if (!response.ok) throw new Error("Админка доступна только при npm run dev");
     catalog = await response.json();
   } catch (error) {
@@ -319,7 +321,7 @@ export async function bootAdmin() {
   const sourceParam = params.get("path");
   if (sourceParam) {
     try {
-      const noteRes = await fetch(`/api/admin/note?path=${encodeURIComponent(sourceParam)}`);
+      const noteRes = await fetch(sitePath(`/api/admin/note?path=${encodeURIComponent(sourceParam)}`));
       const note = await noteRes.json();
       if (!noteRes.ok) throw new Error(note.error ?? "Не удалось открыть запись");
       fillNote(form, typeSelect, note);
@@ -347,7 +349,7 @@ export async function bootAdmin() {
     try {
       if (file) {
         const data = await fileToDataUrl(file);
-        const uploaded = await fetch("/api/admin/upload", {
+        const uploaded = await fetch(sitePath("/api/admin/upload"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -374,7 +376,7 @@ export async function bootAdmin() {
         fields,
         sourcePath: sourcePath || undefined,
       };
-      const endpoint = sourcePath ? "/api/admin/update" : "/api/admin/create";
+      const endpoint = sitePath(sourcePath ? "/api/admin/update" : "/api/admin/create");
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

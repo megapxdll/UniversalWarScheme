@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { getVaultRoot } from "../lore";
+import { sitePath } from "../paths";
 import { slugify } from "../slug";
 import { safeNoteName } from "./yaml";
 
@@ -30,7 +31,7 @@ export function portraitPublicUrl(filename: string | undefined): string | undefi
   if (!filename) return undefined;
   const name = filename.replaceAll("\\", "/").split("/").pop()?.trim();
   if (!name) return undefined;
-  return `/canon-images/${encodeURIComponent(name)}`;
+  return sitePath(`/canon-images/${encodeURIComponent(name)}`);
 }
 
 export function portraitBasename(value: string | undefined): string {
