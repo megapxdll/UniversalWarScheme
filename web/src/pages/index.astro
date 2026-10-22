@@ -1,34 +1,58 @@
 ---
 import Layout from "../components/Layout.astro";
-import EntityCard from "../components/EntityCard.astro";
-import { COLLECTIONS, entitiesOf, getLore } from "../lib/lore";
+import { COLLECTIONS, entitiesOf } from "../lib/lore";
 import { sitePath } from "../lib/paths";
+import { ofStory } from "../lib/stories";
+import { STORIES } from "../lib/story-world";
 
-const lore = getLore();
-const featured = lore.entities.slice(0, 6);
-const counts = (Object.keys(COLLECTIONS) as (keyof typeof COLLECTIONS)[]).map((key) => ({
+const branches = (Object.values(STORIES) as (typeof STORIES)[keyof typeof STORIES][]).map((story) => ({
+  ...story,
+  characters: ofStory("character", story.id).length,
+  events: ofStory("event", story.id).length,
+  factions: ofStory("faction", story.id).length,
+}));
+
+const catalogs = (Object.keys(COLLECTIONS) as (keyof typeof COLLECTIONS)[]).map((key) => ({
   key,
   ...COLLECTIONS[key],
   count: entitiesOf(COLLECTIONS[key].type).length,
 }));
 ---
 
-<Layout title="Universe War History" description="Энциклопедия канона Universe War History.">
+<Layout title="Universe War History" description="Главная страница вселенной: истории Земли, Титании и общие связи мира.">
   <section class="max-w-3xl">
-    <p class="text-xs uppercase tracking-[0.28em] text-gold">Канон вселенной</p>
+    <p class="text-xs uppercase tracking-[0.28em] text-gold">Главная страница вселенной</p>
     <h1 class="mt-3 font-display text-5xl leading-tight text-gold-soft sm:text-6xl">Universe War History</h1>
     <p class="mt-5 text-lg leading-8 text-mist">
-      Хроника миров, где Кут звучит как отпечаток души, Титания держит боевые академии, а Земля и Kölgö стоят на разных
-      полюсах одной войны. Этот сайт читает заметки из Obsidian и собирает из них энциклопедию.
+      Канон читается тремя отдельными историями. Персонаж, созданный как землянин, остаётся в истории Земли; если он
+      участвует в чужой войне, это только связка. То же для Титании и для событий мира.
     </p>
   </section>
 
-  <section class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  <section class="mt-12 grid gap-5 lg:grid-cols-3">
     {
-      counts.map((item) => (
-        <a href={sitePath(item.key === "events" ? "/chronology" : `/${item.key}`)} class="rounded-2xl border border-line bg-panel/70 p-5 hover:border-gold/40">
-          <div class="font-display text-3xl text-gold">{item.count}</div>
-          <div class="mt-1 text-mist">{item.title}</div>
+      branches.map((story, index) => (
+        <a
+          href={sitePath(story.path)}
+          class="flex flex-col rounded-3xl border border-line bg-panel/70 p-6 hover:border-gold/50"
+        >
+          <p class="text-xs uppercase tracking-[0.22em] text-gold">{index + 1}. {story.kicker}</p>
+          <h2 class="mt-3 font-display text-4xl text-gold-soft">{story.title}</h2>
+          <p class="mt-4 flex-1 text-sm leading-6 text-mist">{story.summary}</p>
+          <dl class="mt-6 grid grid-cols-3 gap-2 text-center text-sm">
+            <div>
+              <dt class="text-dim">Персонажи</dt>
+              <dd class="mt-1 font-display text-2xl text-gold">{story.characters}</dd>
+            </div>
+            <div>
+              <dt class="text-dim">События</dt>
+              <dd class="mt-1 font-display text-2xl text-gold">{story.events}</dd>
+            </div>
+            <div>
+              <dt class="text-dim">Фракции</dt>
+              <dd class="mt-1 font-display text-2xl text-gold">{story.factions}</dd>
+            </div>
+          </dl>
         </a>
       ))
     }
@@ -36,11 +60,21 @@ const counts = (Object.keys(COLLECTIONS) as (keyof typeof COLLECTIONS)[]).map((k
 
   <section class="mt-14">
     <div class="mb-6 flex items-end justify-between gap-4">
-      <h2 class="font-display text-3xl text-gold-soft">Записи канона</h2>
-      <a href={sitePath("/search")} class="text-sm text-gold hover:text-gold-soft">Открыть поиск</a>
+      <h2 class="font-display text-3xl text-gold-soft">Весь канон</h2>
+      <a href={sitePath("/chronology")} class="text-sm text-gold hover:text-gold-soft">Открыть хронологию</a>
     </div>
-    <div class="grid gap-4 md:grid-cols-2">
-      {featured.map((entity) => <EntityCard entity={entity} />)}
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        catalogs.map((item) => (
+          <a
+            href={sitePath(item.key === "events" ? "/chronology" : `/${item.key}`)}
+            class="rounded-2xl border border-line bg-panel/70 p-5 hover:border-gold/40"
+          >
+            <div class="font-display text-3xl text-gold">{item.count}</div>
+            <div class="mt-1 text-mist">{item.title}</div>
+          </a>
+        ))
+      }
     </div>
   </section>
 </Layout>

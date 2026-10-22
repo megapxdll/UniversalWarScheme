@@ -3,6 +3,8 @@ import Layout from "../../components/Layout.astro";
 import MetaList from "../../components/MetaList.astro";
 import WikiBody from "../../components/WikiBody.astro";
 import PortraitCarousel from "../../components/PortraitCarousel.astro";
+import StoryAppearances from "../../components/StoryAppearances.astro";
+import StoryChip from "../../components/StoryChip.astro";
 import {
   COLLECTIONS,
   collectionForType,
@@ -11,6 +13,7 @@ import {
   TYPE_LABELS,
 } from "../../lib/lore";
 import { sitePath } from "../../lib/paths";
+import { STORIES } from "../../lib/story-world";
 
 export function getStaticPaths() {
   // Vault notes live outside src/; this re-runs in `astro dev` when the page module reloads.
@@ -37,7 +40,12 @@ const collectionMeta = COLLECTIONS[collection];
 ---
 
 <Layout title={entity.title} description={entity.excerpt || `${TYPE_LABELS[entity.type]} канона Universe War History.`}>
-  <a href={sitePath(`/${collection}`)} class="text-sm text-gold hover:text-gold-soft">← {collectionMeta.title}</a>
+  <div class="flex flex-wrap gap-4 text-sm">
+    <a href={sitePath(STORIES[entity.story].path)} class="text-gold hover:text-gold-soft">
+      ← {STORIES[entity.story].kicker}
+    </a>
+    <a href={sitePath(`/${collection}`)} class="text-gold hover:text-gold-soft">← {collectionMeta.title}</a>
+  </div>
   <div class="mt-4 flex flex-wrap items-start gap-6">
     {
       entity.type === "character" && entity.portraits.length > 0 && (
@@ -47,6 +55,7 @@ const collectionMeta = COLLECTIONS[collection];
     <div>
       <div class="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-dim">
         <span>{TYPE_LABELS[entity.type]}</span>
+        <StoryChip world={entity.story} />
         {entity.status === "draft" && (
           <span class="rounded-full border border-gold/40 px-2 py-0.5 text-gold">Черновик</span>
         )}
@@ -122,6 +131,7 @@ const collectionMeta = COLLECTIONS[collection];
         ]}
       />
       <WikiBody entity={entity} />
+      {entity.type === "character" && <StoryAppearances character={entity} />}
     </article>
     <aside class="h-fit rounded-2xl border border-line bg-panel/70 p-5">
       <h2 class="text-xs uppercase tracking-[0.18em] text-dim">Упоминается в</h2>

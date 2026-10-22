@@ -12,6 +12,7 @@ export const GET: APIRoute = () => {
       title: entity.title,
       status: entity.status,
       href: entity.href,
+      story: entity.story,
       excerpt: entity.excerpt,
       aliases: entity.aliases,
       tags: entity.tags,

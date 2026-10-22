@@ -1,6 +1,6 @@
 ---
 import AdminLayout from "../../components/admin/AdminLayout.astro";
-import { CHARACTER_FOLDERS } from "../../lib/admin/write-note";
+import { CHARACTER_FOLDER_LABELS, CHARACTER_FOLDERS } from "../../lib/admin/write-note";
 import { sitePath } from "../../lib/paths";
 
 const types = [
@@ -56,9 +56,11 @@ const types = [
     <section data-type-form="character" class="space-y-8">
       <div class="grid gap-4 sm:grid-cols-2">
         <label>
-          <span class="admin-label">Папка персонажей</span>
+          <span class="admin-label">История персонажа</span>
           <select name="characterFolder" class="admin-select">
-            {CHARACTER_FOLDERS.map((folder) => <option value={folder}>{folder}</option>)}
+            {CHARACTER_FOLDERS.map((folder) => (
+              <option value={folder}>{CHARACTER_FOLDER_LABELS[folder]}</option>
+            ))}
           </select>
         </label>
       </div>

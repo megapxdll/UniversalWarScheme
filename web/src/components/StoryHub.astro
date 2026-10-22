@@ -1,0 +1,180 @@
+---
+import EntityCard from "./EntityCard.astro";
+import Layout from "./Layout.astro";
+import StoryChip from "./StoryChip.astro";
+import { sitePath } from "../lib/paths";
+import { getStoryHub } from "../lib/stories";
+import { STORIES, type StoryWorld } from "../lib/story-world";
+
+interface Props {
+  world: StoryWorld;
+}
+
+const { world } = Astro.props;
+const story = STORIES[world];
+const hub = getStoryHub(world);
+const others = (Object.values(STORIES) as (typeof story)[]).filter((item) => item.id !== world);
+
+const sectionTitle = {
+  characters: world === "universe" ? "Персонажи мира" : "Персонажи",
+  events: world === "universe" ? "Общие события" : "События",
+  factions: "Фракции",
+  connections: world === "universe" ? "Связи между историями" : "Связки во вселенную",
+  guests: "Гости из других историй",
+};
+---
+
+<Layout title={story.kicker} description={story.summary}>
+  <p class="text-xs uppercase tracking-[0.28em] text-gold">{story.kicker}</p>
+  <h1 class="mt-3 font-display text-5xl text-gold-soft">{story.title}</h1>
+  <p class="mt-4 max-w-3xl text-lg leading-8 text-mist">{story.summary}</p>
+  <div class="mt-6 flex flex-wrap gap-3 text-sm">
+    {others.map((item) => (
+      <a class="rounded-full border border-line px-3 py-1.5 text-mist hover:border-gold/50 hover:text-gold" href={sitePath(item.path)}>
+        {item.nav}
+      </a>
+    ))}
+    <a class="rounded-full border border-line px-3 py-1.5 text-mist hover:border-gold/50 hover:text-gold" href={sitePath("/chronology")}>
+      Хронология
+    </a>
+  </div>
+
+  <section class="mt-12 grid gap-4 sm:grid-cols-3">
+    <a href="#characters" class="rounded-2xl border border-line bg-panel/70 p-5 hover:border-gold/40">
+      <div class="font-display text-3xl text-gold">{hub.characters.length}</div>
+      <div class="mt-1 text-mist">{sectionTitle.characters}</div>
+    </a>
+    <a href="#events" class="rounded-2xl border border-line bg-panel/70 p-5 hover:border-gold/40">
+      <div class="font-display text-3xl text-gold">{hub.events.length}</div>
+      <div class="mt-1 text-mist">{sectionTitle.events}</div>
+    </a>
+    <a href="#factions" class="rounded-2xl border border-line bg-panel/70 p-5 hover:border-gold/40">
+      <div class="font-display text-3xl text-gold">{hub.factions.length}</div>
+      <div class="mt-1 text-mist">{sectionTitle.factions}</div>
+    </a>
+  </section>
+
+  <section id="characters" class="mt-14">
+    <h2 class="font-display text-3xl text-gold-soft">{sectionTitle.characters}</h2>
+    <p class="mt-2 max-w-2xl text-sm text-dim">
+      Карточка живёт в этой истории. Участие в чужих событиях показано ниже как связка, а не как смена дома.
+    </p>
+    {hub.characters.length ? (
+      <div class="mt-6 grid gap-4 md:grid-cols-2">
+        {hub.characters.map((entity) => <EntityCard entity={entity} />)}
+      </div>
+    ) : (
+      <p class="mt-4 text-sm text-dim">Пока нет персонажей этой истории.</p>
+    )}
+  </section>
+
+  <section id="events" class="mt-14">
+    <h2 class="font-display text-3xl text-gold-soft">{sectionTitle.events}</h2>
+    <ol class="mt-6 space-y-8">
+      {hub.eras.map((era) => (
+        <li class="rounded-2xl border border-line bg-panel/70 p-6">
+          <a href={era.period.href} class="font-display text-2xl text-gold-soft hover:text-gold">
+            {era.period.title}
+          </a>
+          {era.events.length ? (
+            <ol class="mt-4 space-y-3">
+              {era.events.map((event, index) => (
+                <li class="rounded-xl border border-line/70 bg-ink/40 p-4">
+                  <div class="flex flex-wrap items-baseline gap-3">
+                    <span class="text-sm text-gold">{index + 1}</span>
+                    <a class="text-lg text-gold-soft hover:text-gold" href={event.href}>
+                      {event.title}
+                    </a>
+                  </div>
+                  {event.extra.eventPlace && <p class="mt-1 text-sm text-dim">{event.extra.eventPlace}</p>}
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p class="mt-3 text-sm text-dim">В этой эпохе локальных событий этой истории пока нет.</p>
+          )}
+        </li>
+      ))}
+    </ol>
+    {hub.unplaced.length > 0 && (
+      <ul class="mt-6 space-y-2">
+        {hub.unplaced.map((event) => (
+          <li>
+            <a class="text-gold hover:text-gold-soft" href={event.href}>{event.title}</a>
+          </li>
+        ))}
+      </ul>
+    )}
+    {!hub.events.length && <p class="mt-4 text-sm text-dim">Локальных событий этой истории пока нет.</p>}
+  </section>
+
+  <section id="factions" class="mt-14">
+    <h2 class="font-display text-3xl text-gold-soft">{sectionTitle.factions}</h2>
+    {hub.factions.length ? (
+      <div class="mt-6 grid gap-4 md:grid-cols-2">
+        {hub.factions.map((entity) => <EntityCard entity={entity} />)}
+      </div>
+    ) : (
+      <p class="mt-4 text-sm text-dim">Фракции этой истории пока не выделены.</p>
+    )}
+  </section>
+
+  {hub.connections.length > 0 && (
+    <section id="connections" class="mt-14">
+      <h2 class="font-display text-3xl text-gold-soft">{sectionTitle.connections}</h2>
+      <p class="mt-2 max-w-2xl text-sm text-dim">
+        {world === "universe"
+          ? "Герой остаётся в своей локальной истории. Здесь только события, куда он зашёл из другой линии."
+          : "Эти персонажи этой истории участвовали в событиях за её пределами."}
+      </p>
+      <ul class="mt-6 space-y-4">
+        {hub.connections.map((item) => (
+          <li class="rounded-2xl border border-line bg-panel/70 p-5">
+            <div class="flex flex-wrap items-center gap-3">
+              <a class="font-display text-2xl text-gold-soft hover:text-gold" href={item.character.href}>
+                {item.character.title}
+              </a>
+              <StoryChip world={item.home} compact />
+            </div>
+            <ul class="mt-3 space-y-2 text-sm">
+              {item.events.map((event) => (
+                <li class="flex flex-wrap items-center gap-2">
+                  <a class="text-gold hover:text-gold-soft" href={event.href}>{event.title}</a>
+                  <StoryChip world={event.story} compact />
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {hub.guests.length > 0 && (
+    <section id="guests" class="mt-14">
+      <h2 class="font-display text-3xl text-gold-soft">{sectionTitle.guests}</h2>
+      <p class="mt-2 max-w-2xl text-sm text-dim">
+        Персонажи других историй, которые появляются в локальных событиях этой линии.
+      </p>
+      <ul class="mt-6 space-y-4">
+        {hub.guests.map((item) => (
+          <li class="rounded-2xl border border-line bg-panel/70 p-5">
+            <div class="flex flex-wrap items-center gap-3">
+              <a class="font-display text-2xl text-gold-soft hover:text-gold" href={item.character.href}>
+                {item.character.title}
+              </a>
+              <StoryChip world={item.home} compact />
+            </div>
+            <ul class="mt-3 space-y-2 text-sm">
+              {item.events.map((event) => (
+                <li>
+                  <a class="text-gold hover:text-gold-soft" href={event.href}>{event.title}</a>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</Layout>

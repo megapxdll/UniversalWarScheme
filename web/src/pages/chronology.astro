@@ -1,5 +1,6 @@
 ---
 import Layout from "../components/Layout.astro";
+import StoryChip from "../components/StoryChip.astro";
 import { getChronology } from "../lib/chronology";
 import { sitePath } from "../lib/paths";
 
@@ -33,9 +34,12 @@ const { eras, unplaced } = getChronology();
                 <li class="flex gap-3 rounded-xl border border-line/70 bg-ink/40 p-4">
                   <span class="mt-0.5 w-8 shrink-0 text-sm text-gold">{index + 1}</span>
                   <div>
-                    <a class="text-lg text-gold-soft hover:text-gold" href={item.entity.href}>
-                      {item.entity.title}
-                    </a>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <a class="text-lg text-gold-soft hover:text-gold" href={item.entity.href}>
+                        {item.entity.title}
+                      </a>
+                      <StoryChip world={item.entity.story} compact />
+                    </div>
                     <div class="mt-1 text-sm text-dim">
                       {[item.entity.extra.eventPlace, item.entity.extra.eventDate].filter(Boolean).join(" · ")}
                     </div>

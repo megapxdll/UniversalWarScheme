@@ -5,6 +5,7 @@ import matter from "gray-matter";
 import { z } from "zod";
 import { sitePath } from "./paths";
 import { slugify } from "./slug";
+import { inferStoryWorld, type StoryWorld } from "./story-world";
 import { extractWikiLinks, type WikiLink } from "./wiki";
 
 export const ENTITY_TYPES = [
@@ -110,6 +111,7 @@ export type LoreEntity = {
   names: string[];
   wikiLinks: WikiLink[];
   portraits: PortraitSlide[];
+  story: StoryWorld;
   extra: Record<string, string | undefined>;
 };
 
@@ -339,23 +341,8 @@ function buildIndex(): LoreIndex {
       .filter(Boolean);
     const portrait = portraitFile(data, body);
     const portraits = portraitSlides(data, body, portrait);
-
-    rawEntities.push({
-      id: `${type}:${slug}`,
-      slug,
-      type,
-      title: displayTitle,
-      status,
-      aliases,
-      tags: tags.map(String),
-      sourcePath: rel.replaceAll("\\", "/"),
-      body,
-      excerpt: excerptFrom(body),
-      href: sitePath(`/${collection}/${slug}`),
-      names,
-      wikiLinks: extractWikiLinks(body),
-      portraits,
-      extra: {
+    const sourcePath = rel.replaceAll("\\", "/");
+    const extra = {
         role: pickFm(data, "роль", "role") || bulletField(body, "Роль"),
         race: pickFm(data, "раса", "race") || bulletField(body, "Раса"),
         element: pickFm(data, "стихия", "element") || bulletField(body, "Стихия"),
@@ -408,7 +395,36 @@ function buildIndex(): LoreIndex {
         romance: pickFm(data, "связи.романтика", "relations.romance") || bulletField(body, "Романтика"),
         portrait: portraits[0]?.file || portrait,
         portraitUrl: portraits[0]?.url || canonImageUrl(portrait),
-      },
+    };
+
+    rawEntities.push({
+      id: `${type}:${slug}`,
+      slug,
+      type,
+      title: displayTitle,
+      status,
+      aliases,
+      tags: tags.map(String),
+      sourcePath,
+      body,
+      excerpt: excerptFrom(body),
+      href: sitePath(`/${collection}/${slug}`),
+      names,
+      wikiLinks: extractWikiLinks(body),
+      portraits,
+      story: inferStoryWorld({
+        type,
+        sourcePath,
+        title: displayTitle,
+        explicit: pickFm(data, "история", "story"),
+        home: extra.home,
+        eventPlace: extra.eventPlace,
+        period: extra.period,
+        epoch: extra.epoch,
+        existencePeriod: extra.existencePeriod,
+        kind: extra.kind,
+      }),
+      extra,
     });
   }
 

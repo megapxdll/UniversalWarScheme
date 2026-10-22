@@ -19,6 +19,12 @@ export const CHARACTER_FOLDERS = [
   "New World Characters",
 ] as const;
 
+export const CHARACTER_FOLDER_LABELS: Record<(typeof CHARACTER_FOLDERS)[number], string> = {
+  "The Earth Characters": "История Земли",
+  "Titania Characters": "История Титании",
+  "New World Characters": "История мира",
+};
+
 export type CharacterFolder = (typeof CHARACTER_FOLDERS)[number];
 
 export type CreatePayload = {

@@ -1,4 +1,5 @@
 ---
+import StoryChip from "./StoryChip.astro";
 import { cardSubtitle, TYPE_LABELS, type LoreEntity } from "../lib/lore";
 
 interface Props {
@@ -31,6 +32,7 @@ const portrait = entity.extra.portraitUrl;
       {entity.status === "draft" && (
         <span class="rounded-full border border-gold/40 px-2 py-0.5 text-[10px] text-gold">Черновик</span>
       )}
+      <StoryChip world={entity.story} compact linked={false} />
       {entity.portraits.length > 1 && (
         <span class="rounded-full border border-line px-2 py-0.5 text-[10px] text-mist">{entity.portraits.length} образа</span>
       )}

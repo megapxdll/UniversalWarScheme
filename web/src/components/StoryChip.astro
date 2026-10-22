@@ -1,0 +1,26 @@
+---
+import { sitePath } from "../lib/paths";
+import { STORIES, type StoryWorld } from "../lib/story-world";
+
+interface Props {
+  world: StoryWorld;
+  compact?: boolean;
+  linked?: boolean;
+}
+
+const { world, compact = false, linked = true } = Astro.props;
+const story = STORIES[world];
+const classes = [
+  "rounded-full border border-gold/35 text-gold",
+  compact ? "px-2 py-0.5 text-[10px] uppercase tracking-[0.16em]" : "px-2.5 py-1 text-xs uppercase tracking-[0.16em]",
+  linked ? "hover:border-gold hover:text-gold-soft" : "",
+];
+---
+
+{linked ? (
+  <a href={sitePath(story.path)} class:list={classes}>
+    {compact ? story.nav : story.kicker}
+  </a>
+) : (
+  <span class:list={classes}>{compact ? story.nav : story.kicker}</span>
+)}

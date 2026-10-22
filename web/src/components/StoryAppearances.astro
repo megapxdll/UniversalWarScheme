@@ -1,0 +1,50 @@
+---
+import StoryChip from "./StoryChip.astro";
+import { characterStoryLinks } from "../lib/stories";
+import { STORIES } from "../lib/story-world";
+import type { LoreEntity } from "../lib/lore";
+
+interface Props {
+  character: LoreEntity;
+}
+
+const { character } = Astro.props;
+const { local, elsewhere } = characterStoryLinks(character);
+const home = STORIES[character.story];
+---
+
+<section class="mt-10 grid gap-6 lg:grid-cols-2">
+  <div class="rounded-2xl border border-line bg-panel/70 p-5">
+    <h2 class="text-xs uppercase tracking-[0.18em] text-dim">{home.kicker}</h2>
+    {local.length ? (
+      <ul class="mt-3 space-y-2">
+        {local.map((event) => (
+          <li>
+            <a class="text-gold hover:text-gold-soft" href={event.href}>{event.title}</a>
+            {event.extra.eventPlace && <div class="text-xs text-dim">{event.extra.eventPlace}</div>}
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="mt-3 text-sm text-dim">Локальных событий этой истории пока нет.</p>
+    )}
+  </div>
+  <div class="rounded-2xl border border-line bg-panel/70 p-5">
+    <h2 class="text-xs uppercase tracking-[0.18em] text-dim">Связки во вселенную</h2>
+    <p class="mt-2 text-sm text-dim">
+      Карточка остаётся в своей истории. Ниже события других линий, где этот персонаж участвовал.
+    </p>
+    {elsewhere.length ? (
+      <ul class="mt-3 space-y-2">
+        {elsewhere.map((event) => (
+          <li class="flex flex-wrap items-center gap-2">
+            <a class="text-gold hover:text-gold-soft" href={event.href}>{event.title}</a>
+            <StoryChip world={event.story} compact />
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="mt-3 text-sm text-dim">Пока нет участий за пределами своей истории.</p>
+    )}
+  </div>
+</section>
