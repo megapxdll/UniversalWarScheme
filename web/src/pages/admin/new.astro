@@ -28,11 +28,11 @@ const types = [
         </select>
       </label>
       <label>
-        <span class="admin-label">Имя / название</span>
+        <span id="title-label" class="admin-label">Имя / название</span>
         <input name="title" required class="admin-input" placeholder="Сакура" />
       </label>
       <label class="sm:col-span-2">
-        <span class="admin-label">Алиасы через запятую</span>
+        <span id="aliases-label" class="admin-label">Алиасы через запятую</span>
         <input name="aliases" class="admin-input" placeholder="Дэниел Сольварен, Леон Астэр" />
       </label>
     </div>
@@ -68,7 +68,7 @@ const types = [
       <details open class="rounded-2xl border border-line bg-panel/50 p-5">
         <summary class="cursor-pointer font-display text-2xl text-gold-soft">Профиль</summary>
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
-          <label><span class="admin-label">Второе имя</span><input name="secondName" class="admin-input" /></label>
+          <label><span class="admin-label">ФИО на английском</span><input name="fioEn" class="admin-input" placeholder="Zeke Faltz" /></label>
           <label>
             <span class="admin-label">Пол</span>
             <select name="gender" class="admin-select">
@@ -111,7 +111,11 @@ const types = [
           <label><span class="admin-label">Раса</span><input name="race" class="admin-input" placeholder="титанид" /></label>
           <label><span class="admin-label">Стихия</span><input name="element" class="admin-input" placeholder="огонь" /></label>
           <label><span class="admin-label">Роль</span><input name="role" class="admin-input" placeholder="пятое перерождение Астера" /></label>
-          <label><span class="admin-label">Цикл перерождений</span><input name="cycle" class="admin-input" placeholder="5" /></label>
+          <label class="sm:col-span-2">
+            <span class="admin-label">Цикл перерождений</span>
+            <input name="cycle" class="admin-input" placeholder="только для носителей цикла Астера: 1–6" />
+            <p class="mt-1 text-xs text-dim">Поле нужно Астеру, Нириде, Болдеру, Селестиану, Дэниелю 1 и преемнику. Остальным не заполняется.</p>
+          </label>
         </div>
       </details>
 

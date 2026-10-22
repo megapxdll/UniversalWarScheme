@@ -97,7 +97,7 @@ function looksBlock(fields: Record<string, unknown>, portrait: string): string {
   return `облики:\n${items.map((item) => `  - файл: ${item.file}\n    имя: ${dumpScalar(item.label)}`).join("\n")}\n`;
 }
 
-function characterMarkdown(title: string, aliases: string[], fields: Record<string, unknown>): string {
+function characterMarkdown(wikiTitle: string, aliases: string[], fields: Record<string, unknown>): string {
   const family = list(fields.family);
   const romance = list(fields.romance);
   const friends = list(fields.friends);
@@ -109,10 +109,15 @@ function characterMarkdown(title: string, aliases: string[], fields: Record<stri
   const portrait = portraitName(fields);
   const lookNotes = field(fields, "lookNotes");
   const looks = looksBlock(fields, portrait);
+  const fioRu = field(fields, "fioRu");
+  const fioEn = field(fields, "fioEn");
+  const cycle = field(fields, "cycle");
   const stats = ["strength", "speed", "stamina", "intellect"].map((key) => Number(fields[key]));
   const autoOverall =
     field(fields, "overall") ||
     (stats.every((n) => Number.isFinite(n) && n > 0) ? String(stats.reduce((a, b) => a + b, 0)) : "");
+  const cycleYaml = cycle ? `цикл перерождений: ${dumpScalar(cycle)}\n` : "";
+  const cycleBullet = cycle ? `- Цикл перерождений: ${cycle}\n` : "";
 
   return `---
 type: character
@@ -123,7 +128,8 @@ aliases: ${aliases.length ? `[${aliases.map((item) => dumpScalar(item)).join(", 
 портрет: ${dumpScalar(portrait)}
 ${looks}
 
-имя: ${dumpScalar(title)}
+имя: ${dumpScalar(fioRu)}
+имя_en: ${dumpScalar(fioEn)}
 второе имя: ${dumpScalar(field(fields, "secondName"))}
 пол: ${dumpScalar(field(fields, "gender"))}
 возраст: ${dumpScalar(field(fields, "age"))}
@@ -135,7 +141,7 @@ ${looks}
 раса: ${dumpScalar(field(fields, "race"))}
 стихия: ${dumpScalar(field(fields, "element"))}
 роль: ${dumpScalar(field(fields, "role"))}
-цикл перерождений: ${dumpScalar(field(fields, "cycle"))}
+${cycleYaml}
 
 внешность:
   рост: ${dumpScalar(field(fields, "height"))}
@@ -164,11 +170,12 @@ ${looks}
   напарники: ${dumpWikiList(partners)}
 ---
 
-# ${title}
+# ${wikiTitle}
 ${portrait ? `\n![[${portrait}]]\n` : ""}
 ## Профиль
-- Имя: ${title}
-- Второе имя: ${field(fields, "secondName")}
+- ФИО: ${fioRu}
+- ФИО (англ.): ${fioEn}
+- Наименование: ${aliases.join(", ")}
 - Пол: ${field(fields, "gender")}
 - Возраст: ${field(fields, "age")}
 - Дата рождения: ${field(fields, "birthDate")}
@@ -179,7 +186,7 @@ ${portrait ? `\n![[${portrait}]]\n` : ""}
 - Раса: ${field(fields, "race")}
 - Стихия: ${field(fields, "element")}
 - Роль: ${field(fields, "role")}
-- Цикл перерождений: ${field(fields, "cycle")}
+${cycleBullet}
 
 ## Внешность
 - Рост: ${field(fields, "height")}
@@ -394,8 +401,8 @@ ${field(fields, "openQuestions") || "-"}
 `;
 }
 
-export function renderNote(payload: CreatePayload): string {
-  const title = safeNoteName(payload.title);
+export function renderNote(payload: CreatePayload, wikiTitle?: string): string {
+  const title = wikiTitle || safeNoteName(payload.title);
   const aliases = list(payload.aliases);
   switch (payload.type) {
     case "character":
@@ -423,13 +430,13 @@ export function writeNote(
   payload: CreatePayload,
   options?: { sourcePath?: string },
 ): { absolutePath: string; relativePath: string } {
-  const nextPath = resolveNotePath(payload);
   const vault = path.resolve(getVaultRoot());
+  const prevPath = options?.sourcePath ? path.resolve(vault, options.sourcePath) : undefined;
+  const nextPath = prevPath && fs.existsSync(prevPath) ? prevPath : resolveNotePath(payload);
   const nextRel = path.relative(vault, nextPath);
   if (!nextRel || nextRel.startsWith("..") || path.isAbsolute(nextRel)) {
     throw new Error("Путь вне vault");
   }
-  const prevPath = options?.sourcePath ? path.resolve(vault, options.sourcePath) : undefined;
   if (prevPath) {
     const inside = path.relative(vault, prevPath);
     if (!inside || inside.startsWith("..") || path.isAbsolute(inside)) {
@@ -445,7 +452,7 @@ export function writeNote(
     if (Array.isArray(looks) && looks.length) payload.fields.looks = looks;
   }
   fs.mkdirSync(path.dirname(nextPath), { recursive: true });
-  fs.writeFileSync(nextPath, renderNote(payload), "utf8");
+  fs.writeFileSync(nextPath, renderNote(payload, path.basename(nextPath, ".md")), "utf8");
   if (prevPath && fs.existsSync(prevPath) && !sameFile(prevPath, nextPath)) {
     fs.unlinkSync(prevPath);
   }

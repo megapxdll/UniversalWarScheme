@@ -138,6 +138,17 @@ function showType(form: HTMLFormElement, type: string) {
   for (const block of form.querySelectorAll<HTMLElement>("[data-type-form]")) {
     block.classList.toggle("hidden", block.dataset.typeForm !== type);
   }
+  const titleLabel = document.querySelector("#title-label");
+  const aliasLabel = document.querySelector("#aliases-label");
+  const titleInput = form.querySelector<HTMLInputElement>('[name="title"]');
+  const aliasInput = form.querySelector<HTMLInputElement>('[name="aliases"]');
+  if (titleLabel) titleLabel.textContent = type === "character" ? "ФИО на русском" : "Имя / название";
+  if (aliasLabel) aliasLabel.textContent = type === "character" ? "Наименование героя" : "Алиасы через запятую";
+  if (titleInput) {
+    titleInput.placeholder = type === "character" ? "Зик Фальц" : "Сакура";
+    titleInput.required = type !== "character";
+  }
+  if (aliasInput) aliasInput.placeholder = type === "character" ? "Генерал Зет, Зет" : "Дэниел Сольварен, Леон Астэр";
 }
 
 function autoOverall(form: HTMLFormElement) {
@@ -207,8 +218,9 @@ function fillNote(form: HTMLFormElement, typeSelect: HTMLSelectElement, note: Pa
   setSelect(typeSelect, note.type);
   typeSelect.disabled = true;
   showType(form, note.type);
-  setField(form, "title", note.title);
+  setField(form, "title", note.type === "character" ? String(note.fields?.fioRu ?? "") : note.title);
   setField(form, "aliases", (note.aliases ?? []).join(", "));
+  if (note.type === "character") setField(form, "fioEn", note.fields?.fioEn, "character");
   if (note.characterFolder) setField(form, "characterFolder", note.characterFolder, "character");
 
   const fields = note.fields ?? {};
@@ -336,9 +348,18 @@ export async function bootAdmin() {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const type = typeSelect.value;
-    const title = val(form, "title");
     const sourcePath = document.querySelector<HTMLInputElement>("#source-path")?.value.trim() ?? "";
     const fields = collect(form, type);
+    const wikiFromPath = sourcePath.split(/[/\\]/).pop()?.replace(/\.md$/i, "") ?? "";
+    const aliases = val(form, "aliases")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (type === "character") fields.fioRu = val(form, "title");
+    const title =
+      type === "character"
+        ? wikiFromPath || String(fields.fioRu || "") || aliases[0] || String(fields.fioEn || "")
+        : val(form, "title");
     const portrait = val(form, "portrait");
     if (portrait) fields.portrait = portrait;
     const file = portraitFile?.files?.[0];
@@ -347,6 +368,7 @@ export async function bootAdmin() {
       result.textContent = sourcePath ? "Сохраняю правки…" : "Создаю заметку…";
     }
     try {
+      if (!title) throw new Error(type === "character" ? "Нужно ФИО или наименование героя" : "Нужно имя");
       if (file) {
         const data = await fileToDataUrl(file);
         const uploaded = await fetch(sitePath("/api/admin/upload"), {
@@ -369,10 +391,7 @@ export async function bootAdmin() {
         type,
         title,
         characterFolder: val(form, "characterFolder"),
-        aliases: val(form, "aliases")
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean),
+        aliases,
         fields,
         sourcePath: sourcePath || undefined,
       };

@@ -326,17 +326,17 @@ function buildIndex(): LoreIndex {
     usedSlugs.add(slug);
 
     const data = fm as Record<string, unknown>;
-    const givenName = pickFm(data, "имя", "name");
-    const displayTitle = givenName || title;
+    const fioRu = pickFm(data, "имя", "name");
+    const fioEn = pickFm(data, "имя_en", "name_en", "english_name");
     const secondName = pickFm(data, "второе имя", "second_name");
-    const aliases = [
-      ...(Array.isArray(fm.aliases) ? fm.aliases.filter(Boolean) : []),
-      secondName,
-    ].filter((name, index, list): name is string => Boolean(name) && list.indexOf(name) === index);
+    const aliases = (Array.isArray(fm.aliases) ? fm.aliases.filter(Boolean) : []).filter(
+      (name, index, list): name is string => Boolean(name) && list.indexOf(name) === index,
+    );
+    const displayTitle = title || fioRu || aliases[0] || fioEn || stem;
     const tags = Array.isArray(fm.tags) ? fm.tags : fm.tags ? [String(fm.tags)] : [];
     const status = String(fm.status ?? "published").toLowerCase() === "draft" ? "draft" : "published";
     const collection = collectionForType(type);
-    const names = [displayTitle, title, stem, givenName, ...aliases]
+    const names = [displayTitle, title, stem, fioRu, fioEn, secondName, ...aliases]
       .map((name) => String(name).trim())
       .filter(Boolean);
     const portrait = portraitFile(data, body);
@@ -346,7 +346,10 @@ function buildIndex(): LoreIndex {
         role: pickFm(data, "роль", "role") || bulletField(body, "Роль"),
         race: pickFm(data, "раса", "race") || bulletField(body, "Раса"),
         element: pickFm(data, "стихия", "element") || bulletField(body, "Стихия"),
-        cycle: pickFm(data, "цикл перерождений", "cycle") || bulletField(body, "Цикл перерождений"),
+        cycle: pickFm(data, "цикл перерождений", "cycle"),
+        fioRu,
+        fioEn,
+        heroNames: aliases.join(", ") || undefined,
         secondName,
         gender: pickFm(data, "пол", "gender"),
         speciesAge: pickFm(data, "возраст", "age") || bulletField(body, "Возраст/вид") || bulletField(body, "Возраст"),
@@ -516,7 +519,10 @@ export function entitiesOf(type: EntityType): LoreEntity[] {
 
 export function cardSubtitle(entity: LoreEntity): string {
   if (entity.type === "character") {
-    return [entity.extra.faction, entity.extra.lifeStatus, entity.extra.home].filter(Boolean).join(" · ");
+    return [entity.extra.fioRu, entity.extra.fioEn, entity.extra.heroNames, entity.extra.lifeStatus]
+      .filter(Boolean)
+      .filter((value, index, list) => list.indexOf(value) === index)
+      .join(" · ");
   }
   if (entity.type === "location") {
     return [entity.extra.kind, entity.extra.system, entity.extra.population].filter(Boolean).join(" · ");

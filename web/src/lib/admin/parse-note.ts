@@ -162,7 +162,10 @@ export function parseNote(sourcePath: string): ParsedNote {
     | undefined;
   if (!type) throw new Error("Неизвестный тип записи");
 
-  const title = scalar(data, "имя", "название", "name") || firstHeading(body) || path.basename(abs, ".md");
+  const title =
+    type === "character"
+      ? firstHeading(body) || path.basename(abs, ".md")
+      : scalar(data, "имя", "название", "name") || firstHeading(body) || path.basename(abs, ".md");
   const aliases = asNames(data.aliases);
   const portrait = portraitBasename(scalar(data, "портрет", "portrait", "image")) ||
     portraitBasename(body.match(/!\[\[([^\]|]+\.(?:png|jpe?g|webp|gif))(?:\|[^\]]+)?\]\]/i)?.[1]);
@@ -175,6 +178,8 @@ export function parseNote(sourcePath: string): ParsedNote {
   const fields: Record<string, unknown> = {};
   if (type === "character") {
     Object.assign(fields, {
+      fioRu: scalar(data, "имя", "name"),
+      fioEn: scalar(data, "имя_en", "name_en", "english_name"),
       secondName: scalar(data, "второе имя", "second_name"),
       gender: scalar(data, "пол", "gender"),
       age: scalar(data, "возраст", "age"),

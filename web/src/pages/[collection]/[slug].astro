@@ -61,6 +61,14 @@ const collectionMeta = COLLECTIONS[collection];
         )}
       </div>
       <h1 class="mt-3 font-display text-5xl text-gold-soft">{entity.title}</h1>
+      {
+        entity.type === "character" &&
+          [entity.extra.fioRu, entity.extra.fioEn].some((name) => name && name !== entity.title) && (
+          <p class="mt-3 text-lg text-mist">
+            {[entity.extra.fioRu, entity.extra.fioEn].filter((name) => name && name !== entity.title).join(" · ")}
+          </p>
+        )
+      }
       {import.meta.env.DEV && (
         <a
           class="mt-3 inline-block text-sm text-gold hover:text-gold-soft"
@@ -85,7 +93,9 @@ const collectionMeta = COLLECTIONS[collection];
     <article>
       <MetaList
         items={[
-          { label: "Второе имя", value: entity.extra.secondName },
+          { label: "ФИО", value: entity.extra.fioRu },
+          { label: "ФИО (англ.)", value: entity.extra.fioEn },
+          { label: "Наименование", value: entity.extra.heroNames },
           { label: "Пол", value: entity.extra.gender },
           { label: "Возраст", value: entity.extra.speciesAge },
           { label: "Роль", value: entity.extra.role },
