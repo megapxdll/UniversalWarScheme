@@ -146,7 +146,7 @@ function showType(form: HTMLFormElement, type: string) {
   if (titleLabel) titleLabel.textContent = type === "character" ? "Имя карточки" : "Имя / название";
   if (aliasLabel) aliasLabel.textContent = type === "character" ? "Наименование героя" : "Алиасы через запятую";
   if (titleInput) {
-    titleInput.placeholder = type === "character" ? "Дед строук Нейтан Филлион" : "Сакура";
+    titleInput.placeholder = type === "character" ? "Дед строук Нейтан Кольт" : "Сакура";
     titleInput.required = false;
   }
   titleHint?.classList.toggle("hidden", type !== "character");
