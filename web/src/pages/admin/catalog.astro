@@ -50,7 +50,7 @@ const tabs = [{ type: "all", label: "Все", count: entities.length }, ...ENTIT
               src={entity.extra.portraitUrl}
               alt=""
               class={entity.type === "character"
-                ? "h-16 w-14 shrink-0 rounded-lg object-cover bg-ink"
+                ? "h-20 w-14 shrink-0 rounded-lg object-contain object-top bg-ink"
                 : "h-16 w-28 shrink-0 rounded-lg object-cover object-[center_20%] bg-ink"}
             />
           ) : entity.type === "character" ? (
