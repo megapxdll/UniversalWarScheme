@@ -131,7 +131,7 @@ export async function handleAdmin(req: IncomingMessage, res: ServerResponse): Pr
         return true;
       }
       const duplicate = getLore().resolve(payload.title);
-      if (duplicate && duplicate.sourcePath !== sourcePath) {
+      if (!sourcePath && duplicate) {
         send(res, 409, { error: `Уже есть запись «${duplicate.title}» (${duplicate.sourcePath})` });
         return true;
       }

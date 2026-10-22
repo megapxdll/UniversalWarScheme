@@ -439,6 +439,11 @@ function buildIndex(): LoreIndex {
     byId.set(entity.id, entity);
     for (const name of entity.names) lookup.set(keyOf(name), entity);
   }
+  for (const entity of rawEntities) {
+    const stem = entity.sourcePath.replaceAll("\\", "/").split("/").pop()?.replace(/\.md$/i, "");
+    if (stem) lookup.set(keyOf(stem), entity);
+    lookup.set(keyOf(entity.title), entity);
+  }
 
   const resolve = (name: string) => lookup.get(keyOf(name));
   const edgeSet = new Set<string>();

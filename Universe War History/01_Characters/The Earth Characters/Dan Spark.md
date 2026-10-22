@@ -13,7 +13,6 @@ aliases: [DevilRage]
   - файл: devilrage-dan-spark.png
     имя: Dan Spark
 
-
 имя:
 имя_en: Dan Spark
 второе имя:

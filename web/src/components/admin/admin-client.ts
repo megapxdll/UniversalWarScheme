@@ -142,13 +142,15 @@ function showType(form: HTMLFormElement, type: string) {
   const aliasLabel = document.querySelector("#aliases-label");
   const titleInput = form.querySelector<HTMLInputElement>('[name="title"]');
   const aliasInput = form.querySelector<HTMLInputElement>('[name="aliases"]');
-  if (titleLabel) titleLabel.textContent = type === "character" ? "ФИО на русском" : "Имя / название";
+  const titleHint = document.querySelector("#title-hint");
+  if (titleLabel) titleLabel.textContent = type === "character" ? "Имя карточки" : "Имя / название";
   if (aliasLabel) aliasLabel.textContent = type === "character" ? "Наименование героя" : "Алиасы через запятую";
   if (titleInput) {
-    titleInput.placeholder = type === "character" ? "Зик Фальц" : "Сакура";
-    titleInput.required = type !== "character";
+    titleInput.placeholder = type === "character" ? "Дед строук Нейтан Филлион" : "Сакура";
+    titleInput.required = false;
   }
-  if (aliasInput) aliasInput.placeholder = type === "character" ? "Генерал Зет, Зет" : "Дэниел Сольварен, Леон Астэр";
+  titleHint?.classList.toggle("hidden", type !== "character");
+  if (aliasInput) aliasInput.placeholder = type === "character" ? "Дед строук, Dread" : "Дэниел Сольварен, Леон Астэр";
 }
 
 function autoOverall(form: HTMLFormElement) {
@@ -218,9 +220,14 @@ function fillNote(form: HTMLFormElement, typeSelect: HTMLSelectElement, note: Pa
   setSelect(typeSelect, note.type);
   typeSelect.disabled = true;
   showType(form, note.type);
-  setField(form, "title", note.type === "character" ? String(note.fields?.fioRu ?? "") : note.title);
+  setField(form, "title", note.title);
+  const titleInput = form.querySelector<HTMLInputElement>('[name="title"]');
+  if (titleInput) titleInput.readOnly = true;
   setField(form, "aliases", (note.aliases ?? []).join(", "));
-  if (note.type === "character") setField(form, "fioEn", note.fields?.fioEn, "character");
+  if (note.type === "character") {
+    setField(form, "fioRu", note.fields?.fioRu, "character");
+    setField(form, "fioEn", note.fields?.fioEn, "character");
+  }
   if (note.characterFolder) setField(form, "characterFolder", note.characterFolder, "character");
 
   const fields = note.fields ?? {};
@@ -355,10 +362,10 @@ export async function bootAdmin() {
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean);
-    if (type === "character") fields.fioRu = val(form, "title");
+    if (type === "character") fields.fioRu = val(form, "fioRu") || String(fields.fioRu || "");
     const title =
       type === "character"
-        ? wikiFromPath || String(fields.fioRu || "") || aliases[0] || String(fields.fioEn || "")
+        ? wikiFromPath || val(form, "title") || String(fields.fioRu || "") || aliases[0] || String(fields.fioEn || "")
         : val(form, "title");
     const portrait = val(form, "portrait");
     if (portrait) fields.portrait = portrait;
