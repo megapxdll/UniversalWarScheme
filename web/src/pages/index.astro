@@ -26,7 +26,7 @@ const counts = (Object.keys(COLLECTIONS) as (keyof typeof COLLECTIONS)[]).map((k
   <section class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {
       counts.map((item) => (
-        <a href={sitePath(`/${item.key}`)} class="rounded-2xl border border-line bg-panel/70 p-5 hover:border-gold/40">
+        <a href={sitePath(item.key === "events" ? "/chronology" : `/${item.key}`)} class="rounded-2xl border border-line bg-panel/70 p-5 hover:border-gold/40">
           <div class="font-display text-3xl text-gold">{item.count}</div>
           <div class="mt-1 text-mist">{item.title}</div>
         </a>

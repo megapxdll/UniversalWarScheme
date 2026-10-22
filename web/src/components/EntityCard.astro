@@ -31,6 +31,9 @@ const portrait = entity.extra.portraitUrl;
       {entity.status === "draft" && (
         <span class="rounded-full border border-gold/40 px-2 py-0.5 text-[10px] text-gold">Черновик</span>
       )}
+      {entity.portraits.length > 1 && (
+        <span class="rounded-full border border-line px-2 py-0.5 text-[10px] text-mist">{entity.portraits.length} образа</span>
+      )}
     </div>
     <h2 class="font-display text-2xl text-gold-soft group-hover:text-gold">{entity.title}</h2>
     {subtitle && <p class="mt-2 text-sm leading-6 text-dim">{subtitle}</p>}

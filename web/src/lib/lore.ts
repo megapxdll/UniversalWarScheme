@@ -89,6 +89,12 @@ const Frontmatter = z
   })
   .passthrough();
 
+export type PortraitSlide = {
+  file: string;
+  label: string;
+  url: string;
+};
+
 export type LoreEntity = {
   id: string;
   slug: string;
@@ -103,6 +109,7 @@ export type LoreEntity = {
   href: string;
   names: string[];
   wikiLinks: WikiLink[];
+  portraits: PortraitSlide[];
   extra: Record<string, string | undefined>;
 };
 
@@ -257,6 +264,40 @@ function portraitFile(data: Record<string, unknown>, body: string): string | und
   return name || undefined;
 }
 
+function portraitSlides(data: Record<string, unknown>, body: string, primary?: string): PortraitSlide[] {
+  const slides: PortraitSlide[] = [];
+  const seen = new Set<string>();
+  const add = (file?: string, label?: string) => {
+    const name = file?.replace(/^!\[\[/, "").replace(/\]\]$/, "").replaceAll("\\", "/").split("/").pop()?.trim();
+    if (!name || !/\.(png|jpe?g|webp|gif|avif)$/i.test(name) || seen.has(name.toLowerCase())) return;
+    const url = canonImageUrl(name);
+    if (!url) return;
+    seen.add(name.toLowerCase());
+    slides.push({
+      file: name,
+      label: (label || name.replace(/\.[^.]+$/, "")).trim(),
+      url,
+    });
+  };
+
+  const raw = data.облики ?? data.looks ?? data.portraits;
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (typeof item === "string") add(item);
+      else if (item && typeof item === "object") {
+        const rec = item as Record<string, unknown>;
+        add(String(rec.файл ?? rec.file ?? rec.portrait ?? ""), String(rec.имя ?? rec.name ?? rec.label ?? ""));
+      }
+    }
+  }
+  add(primary);
+  const oblik = body.match(/## Облик\s*\n([\s\S]*?)(?=\n## |$)/)?.[1] ?? "";
+  for (const match of oblik.matchAll(/[-*]\s*([^:\n]+):\s*!\[\[([^\]|]+)\]\]/g)) {
+    add(match[2], match[1]?.trim());
+  }
+  return slides;
+}
+
 function buildIndex(): LoreIndex {
   const root = getVaultRoot();
   const files = walkMarkdown(root);
@@ -296,6 +337,8 @@ function buildIndex(): LoreIndex {
     const names = [displayTitle, title, stem, givenName, ...aliases]
       .map((name) => String(name).trim())
       .filter(Boolean);
+    const portrait = portraitFile(data, body);
+    const portraits = portraitSlides(data, body, portrait);
 
     rawEntities.push({
       id: `${type}:${slug}`,
@@ -311,6 +354,7 @@ function buildIndex(): LoreIndex {
       href: sitePath(`/${collection}/${slug}`),
       names,
       wikiLinks: extractWikiLinks(body),
+      portraits,
       extra: {
         role: pickFm(data, "роль", "role") || bulletField(body, "Роль"),
         race: pickFm(data, "раса", "race") || bulletField(body, "Раса"),
@@ -362,8 +406,8 @@ function buildIndex(): LoreIndex {
         family: pickFm(data, "связи.семья", "relations.family") || bulletField(body, "Семья/близкие") || bulletField(body, "Семья"),
         partners: pickFm(data, "связи.напарники", "relations.partners") || bulletField(body, "Напарники"),
         romance: pickFm(data, "связи.романтика", "relations.romance") || bulletField(body, "Романтика"),
-        portrait: portraitFile(data, body),
-        portraitUrl: canonImageUrl(portraitFile(data, body)),
+        portrait: portraits[0]?.file || portrait,
+        portraitUrl: portraits[0]?.url || canonImageUrl(portrait),
       },
     });
   }

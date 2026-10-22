@@ -44,17 +44,24 @@ export function dropFirstHeading(markdown: string): string {
   return markdown.replace(/^#{1,3}\s+.+\n+/, "");
 }
 
-function dropPortraitEmbed(markdown: string, portrait?: string): string {
-  if (!portrait) {
+function dropPortraitEmbed(markdown: string, files: string[]): string {
+  if (!files.length) {
     return markdown.replace(/!\[\[([^\]|]+\.(?:png|jpe?g|webp|gif|avif))(?:\|[^\]]+)?\]\]\s*/gi, "");
   }
-  const escaped = portrait.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return markdown.replace(new RegExp(`!\\[\\[${escaped}(?:\\|[^\\]]+)?\\]\\]\\s*`, "gi"), "");
+  let next = markdown;
+  for (const file of files) {
+    const escaped = file.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    next = next.replace(new RegExp(`!\\[\\[${escaped}(?:\\|[^\\]]+)?\\]\\]\\s*`, "gi"), "");
+  }
+  return next;
 }
 
 export function renderEntityHtml(entity: LoreEntity, lore: LoreIndex): string {
   let markdown = dropFirstHeading(entity.body);
-  markdown = dropPortraitEmbed(markdown, entity.extra.portrait);
+  markdown = dropPortraitEmbed(
+    markdown,
+    entity.portraits.map((slide) => slide.file).concat(entity.extra.portrait ? [entity.extra.portrait] : []),
+  );
   markdown = markdown.replace(
     /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g,
     (_all, file: string, alt?: string) => {

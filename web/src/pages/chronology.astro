@@ -1,0 +1,77 @@
+---
+import Layout from "../components/Layout.astro";
+import { getChronology } from "../lib/chronology";
+import { sitePath } from "../lib/paths";
+
+const { eras, unplaced } = getChronology();
+---
+
+<Layout
+  title="Хронология"
+  description="События канона Universe War History по эпохам, в сюжетном порядке."
+>
+  <p class="text-xs uppercase tracking-[0.28em] text-gold">Канон</p>
+  <h1 class="mt-3 font-display text-5xl text-gold-soft">Хронология</h1>
+  <p class="mt-4 max-w-2xl text-dim">
+    Эпохи идут по порядку. Внутри эпохи события стоят так, как записаны в карточке периода. Так можно последовательно проверить, что где и когда происходит.
+  </p>
+
+  <ol class="mt-10 space-y-10">
+    {
+      eras.map((era, eraIndex) => (
+        <li class="rounded-2xl border border-line bg-panel/70 p-6">
+          <div class="flex flex-wrap items-baseline justify-between gap-3">
+            <a href={era.period.href} class="font-display text-3xl text-gold-soft hover:text-gold">
+              {eraIndex + 1}. {era.period.title}
+            </a>
+            {era.period.extra.range && <span class="text-xs uppercase tracking-[0.18em] text-dim">{era.period.extra.range}</span>}
+          </div>
+          {era.period.excerpt && <p class="mt-3 max-w-3xl text-sm leading-6 text-mist">{era.period.excerpt}</p>}
+          {era.events.length ? (
+            <ol class="mt-5 space-y-3">
+              {era.events.map((item, index) => (
+                <li class="flex gap-3 rounded-xl border border-line/70 bg-ink/40 p-4">
+                  <span class="mt-0.5 w-8 shrink-0 text-sm text-gold">{index + 1}</span>
+                  <div>
+                    <a class="text-lg text-gold-soft hover:text-gold" href={item.entity.href}>
+                      {item.entity.title}
+                    </a>
+                    <div class="mt-1 text-sm text-dim">
+                      {[item.entity.extra.eventPlace, item.entity.extra.eventDate].filter(Boolean).join(" · ")}
+                    </div>
+                    {item.entity.excerpt && <p class="mt-2 text-sm leading-6 text-mist">{item.entity.excerpt}</p>}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p class="mt-4 text-sm text-dim">Отдельных событий в этой эпохе пока нет — только рамка периода.</p>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+
+  {
+    unplaced.length > 0 && (
+      <section class="mt-12">
+        <h2 class="font-display text-3xl text-gold-soft">Без эпохи</h2>
+        <p class="mt-2 text-sm text-dim">События, у которых ещё не указан период.</p>
+        <ul class="mt-4 space-y-2">
+          {unplaced.map((event) => (
+            <li>
+              <a class="text-gold hover:text-gold-soft" href={event.href}>
+                {event.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <p class="mt-10 text-sm text-dim">
+    Каталоги: <a class="text-gold hover:text-gold-soft" href={sitePath("/events")}>события</a>
+    и <a class="text-gold hover:text-gold-soft" href={sitePath("/periods")}>периоды</a> — тоже в порядке эпох.
+  </p>
+</Layout>

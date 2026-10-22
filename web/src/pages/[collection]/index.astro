@@ -2,6 +2,7 @@
 import Layout from "../../components/Layout.astro";
 import EntityCard from "../../components/EntityCard.astro";
 import { COLLECTIONS, entitiesOf, isCollectionKey } from "../../lib/lore";
+import { sortEntitiesForCollection } from "../../lib/chronology";
 import { sitePath } from "../../lib/paths";
 
 export function getStaticPaths() {
@@ -16,7 +17,7 @@ if (!isCollectionKey(collection)) {
 }
 
 const meta = COLLECTIONS[collection];
-const entities = entitiesOf(meta.type);
+const entities = sortEntitiesForCollection(entitiesOf(meta.type));
 ---
 
 <Layout title={meta.title} description={`Канон: ${meta.title.toLowerCase()} вселенной Universe War History.`}>

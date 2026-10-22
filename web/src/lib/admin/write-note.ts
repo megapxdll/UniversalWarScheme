@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import matter from "gray-matter";
 import { getVaultRoot, type EntityType } from "../lore";
 import { dumpScalar, dumpWikiLine, dumpWikiList, safeNoteName, wiki } from "./yaml";
 
@@ -69,6 +70,27 @@ function portraitName(fields: Record<string, unknown>): string {
     .pop() ?? "";
 }
 
+function looksBlock(fields: Record<string, unknown>, portrait: string): string {
+  const raw = fields.looks;
+  const items: { file: string; label: string }[] = [];
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (typeof item === "string" && item.trim()) items.push({ file: item.trim(), label: item.replace(/\.[^.]+$/, "") });
+      else if (item && typeof item === "object") {
+        const rec = item as Record<string, unknown>;
+        const file = String(rec.файл ?? rec.file ?? "").trim();
+        if (file) items.push({ file, label: String(rec.имя ?? rec.name ?? rec.label ?? file.replace(/\.[^.]+$/, "")).trim() });
+      }
+    }
+  }
+  if (!items.length && portrait) return "";
+  if (portrait && !items.some((item) => item.file === portrait)) {
+    items.unshift({ file: portrait, label: "основной" });
+  }
+  if (!items.length) return "";
+  return `облики:\n${items.map((item) => `  - файл: ${item.file}\n    имя: ${dumpScalar(item.label)}`).join("\n")}\n`;
+}
+
 function characterMarkdown(title: string, aliases: string[], fields: Record<string, unknown>): string {
   const family = list(fields.family);
   const romance = list(fields.romance);
@@ -80,6 +102,7 @@ function characterMarkdown(title: string, aliases: string[], fields: Record<stri
   const birthplace = field(fields, "birthplace");
   const portrait = portraitName(fields);
   const lookNotes = field(fields, "lookNotes");
+  const looks = looksBlock(fields, portrait);
   const stats = ["strength", "speed", "stamina", "intellect"].map((key) => Number(fields[key]));
   const autoOverall =
     field(fields, "overall") ||
@@ -92,6 +115,7 @@ tags:
   - character
 aliases: ${aliases.length ? `[${aliases.map((item) => dumpScalar(item)).join(", ")}]` : "[]"}
 портрет: ${dumpScalar(portrait)}
+${looks}
 
 имя: ${dumpScalar(title)}
 второе имя: ${dumpScalar(field(fields, "secondName"))}
@@ -408,6 +432,11 @@ export function writeNote(
   }
   if (fs.existsSync(nextPath) && (!prevPath || !sameFile(nextPath, prevPath))) {
     throw new Error(`Файл уже есть: ${path.relative(vault, nextPath)}`);
+  }
+  if (payload.type === "character" && prevPath && fs.existsSync(prevPath) && !payload.fields.looks) {
+    const parsed = matter(fs.readFileSync(prevPath, "utf8"));
+    const looks = (parsed.data as Record<string, unknown>).облики ?? (parsed.data as Record<string, unknown>).looks;
+    if (Array.isArray(looks) && looks.length) payload.fields.looks = looks;
   }
   fs.mkdirSync(path.dirname(nextPath), { recursive: true });
   fs.writeFileSync(nextPath, renderNote(payload), "utf8");

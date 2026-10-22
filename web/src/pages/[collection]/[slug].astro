@@ -2,6 +2,7 @@
 import Layout from "../../components/Layout.astro";
 import MetaList from "../../components/MetaList.astro";
 import WikiBody from "../../components/WikiBody.astro";
+import PortraitCarousel from "../../components/PortraitCarousel.astro";
 import {
   COLLECTIONS,
   collectionForType,
@@ -39,12 +40,8 @@ const collectionMeta = COLLECTIONS[collection];
   <a href={sitePath(`/${collection}`)} class="text-sm text-gold hover:text-gold-soft">← {collectionMeta.title}</a>
   <div class="mt-4 flex flex-wrap items-start gap-6">
     {
-      entity.extra.portraitUrl && entity.type === "character" && (
-        <img
-          src={entity.extra.portraitUrl}
-          alt={entity.title}
-          class="h-auto w-full max-w-[20rem] max-h-[36rem] rounded-2xl border border-line object-contain bg-ink"
-        />
+      entity.type === "character" && entity.portraits.length > 0 && (
+        <PortraitCarousel slides={entity.portraits} title={entity.title} />
       )
     }
     <div>

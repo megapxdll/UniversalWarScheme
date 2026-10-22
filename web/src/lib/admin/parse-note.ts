@@ -212,6 +212,7 @@ export function parseNote(sourcePath: string): ParsedNote {
       arc: cleanText(section(body, "Арка по периодам")),
       notes: cleanText(section(body, "Заметки")),
       portrait,
+      looks: Array.isArray(data.облики) ? data.облики : Array.isArray(data.looks) ? data.looks : [],
     });
   } else if (type === "location") {
     Object.assign(fields, {
