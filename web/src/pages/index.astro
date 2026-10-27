@@ -27,6 +27,14 @@ const catalogs = (Object.keys(COLLECTIONS) as (keyof typeof COLLECTIONS)[]).map(
       Канон читается тремя отдельными историями. Персонаж, созданный как землянин, остаётся в истории Земли; если он
       участвует в чужой войне, это только связка. То же для Титании и для событий мира.
     </p>
+    <p class="mt-6">
+      <a
+        href={sitePath("/book")}
+        class="inline-flex items-center rounded-full border border-gold/40 bg-gold/10 px-5 py-2.5 text-sm text-gold-soft transition hover:border-gold hover:bg-gold/20"
+      >
+        Читать книгу мира
+      </a>
+    </p>
   </section>
 
   <section class="mt-12 grid gap-5 lg:grid-cols-3">

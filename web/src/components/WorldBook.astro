@@ -1,0 +1,508 @@
+---
+interface Props {
+  autoOpen?: boolean;
+}
+
+const { autoOpen = false } = Astro.props;
+---
+
+<div
+  id="world-book-root"
+  class="world-book-root"
+  data-auto-open={autoOpen ? "1" : "0"}
+>
+  <button type="button" class="world-book-trigger group" data-book-open>
+    <span class="world-book-trigger__glow" aria-hidden="true"></span>
+    <span class="world-book-trigger__label">Открыть книгу мира</span>
+    <span class="world-book-trigger__hint">Листайте страницы в модальном окне</span>
+  </button>
+
+  <div
+    class="world-book-modal"
+    data-book-modal
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="world-book-title"
+  >
+    <div class="world-book-modal__backdrop" data-book-close></div>
+    <div class="world-book-stage">
+      <button type="button" class="world-book-close" data-book-close aria-label="Закрыть">
+        ×
+      </button>
+
+      <div class="world-book-shell" data-book-shell>
+        <div class="world-book-spine" aria-hidden="true"></div>
+        <div class="world-book-leaf" data-book-leaf>
+          <article class="world-book-page" data-book-page>
+            <p class="world-book-page__kicker" data-book-kicker></p>
+            <h2 id="world-book-title" class="world-book-page__title" data-book-title></h2>
+            <div class="world-book-page__body" data-book-body></div>
+            <footer class="world-book-page__foot">
+              <span data-book-num></span>
+            </footer>
+          </article>
+        </div>
+      </div>
+
+      <div class="world-book-controls">
+        <button type="button" class="world-book-nav" data-book-prev aria-label="Предыдущая страница">
+          ← Назад
+        </button>
+        <div class="world-book-progress" data-book-dots aria-hidden="true"></div>
+        <button type="button" class="world-book-nav" data-book-next aria-label="Следующая страница">
+          Вперёд →
+        </button>
+      </div>
+      <p class="world-book-keys">Клавиши ← → · Esc закрыть · клик по краям листа</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .world-book-root {
+    --paper: #f3e6c8;
+    --paper-edge: #e2d0a4;
+    --ink-soft: #2a2418;
+    --ink-mute: #5c5344;
+    --gold-line: rgba(212, 176, 96, 0.55);
+  }
+
+  .world-book-trigger {
+    position: relative;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    border: 1px solid var(--color-line);
+    background:
+      linear-gradient(135deg, rgba(212, 176, 96, 0.12), transparent 45%),
+      linear-gradient(180deg, rgba(23, 29, 40, 0.95), rgba(16, 20, 28, 0.98));
+    padding: 1.75rem 1.75rem 1.6rem;
+    text-align: left;
+    transition:
+      border-color 0.35s ease,
+      transform 0.35s ease;
+  }
+
+  .world-book-trigger:hover {
+    border-color: rgba(212, 176, 96, 0.55);
+    transform: translateY(-2px);
+  }
+
+  .world-book-trigger__glow {
+    position: absolute;
+    inset: -40% auto auto -20%;
+    width: 16rem;
+    height: 16rem;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(212, 176, 96, 0.22), transparent 70%);
+    transition: transform 0.6s ease;
+  }
+
+  .world-book-trigger:hover .world-book-trigger__glow {
+    transform: translate(18%, 12%) scale(1.15);
+  }
+
+  .world-book-trigger__label {
+    position: relative;
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    line-height: 1.1;
+    color: var(--color-gold-soft);
+  }
+
+  .world-book-trigger__hint {
+    position: relative;
+    font-size: 0.9rem;
+    color: var(--color-dim);
+  }
+
+  .world-book-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+  }
+
+  .world-book-modal[hidden] {
+    display: none;
+  }
+
+  .world-book-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 6, 10, 0.78);
+    backdrop-filter: blur(8px);
+    animation: book-fade 0.35s ease;
+  }
+
+  .world-book-stage {
+    position: relative;
+    z-index: 1;
+    width: min(920px, 100%);
+    animation: book-rise 0.45s ease;
+  }
+
+  .world-book-close {
+    position: absolute;
+    top: -0.2rem;
+    right: 0.2rem;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line);
+    background: var(--color-panel);
+    color: var(--color-gold-soft);
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  .world-book-close:hover {
+    border-color: var(--color-gold);
+  }
+
+  .world-book-shell {
+    position: relative;
+    perspective: 1800px;
+    border-radius: 1.1rem 1.35rem 1.35rem 1.1rem;
+    background:
+      linear-gradient(90deg, #1a120c 0 0.85rem, transparent 0.85rem),
+      linear-gradient(180deg, #2a2118, #17120e);
+    box-shadow:
+      0 30px 80px rgba(0, 0, 0, 0.55),
+      inset 0 0 0 1px rgba(212, 176, 96, 0.18);
+    padding: 1rem 1rem 1rem 1.35rem;
+  }
+
+  .world-book-spine {
+    position: absolute;
+    left: 0;
+    top: 8%;
+    bottom: 8%;
+    width: 0.85rem;
+    border-radius: 0.4rem 0 0 0.4rem;
+    background: linear-gradient(180deg, #3a2c1c, #1a120c 40%, #3a2c1c);
+    box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.45);
+  }
+
+  .world-book-leaf {
+    position: relative;
+    min-height: min(62vh, 520px);
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.22, 0.8, 0.28, 1);
+  }
+
+  .world-book-leaf.is-turn-next {
+    transform: rotateY(-12deg) translateX(0.4rem);
+  }
+
+  .world-book-leaf.is-turn-prev {
+    transform: rotateY(10deg) translateX(-0.25rem);
+  }
+
+  .world-book-page {
+    position: relative;
+    height: 100%;
+    min-height: inherit;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0.35rem 0.9rem 0.9rem 0.35rem;
+    background:
+      linear-gradient(105deg, rgba(255, 255, 255, 0.18), transparent 28%),
+      linear-gradient(180deg, var(--paper), var(--paper-edge));
+    color: var(--ink-soft);
+    box-shadow:
+      inset 8px 0 18px rgba(90, 60, 20, 0.08),
+      inset 0 0 0 1px rgba(120, 90, 40, 0.18);
+    padding: clamp(1.4rem, 4vw, 2.4rem);
+    overflow: hidden;
+  }
+
+  .world-book-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(90, 60, 20, 0.05), transparent 28%),
+      radial-gradient(circle at 88% 72%, rgba(90, 60, 20, 0.06), transparent 30%);
+    pointer-events: none;
+  }
+
+  .world-book-page__kicker {
+    position: relative;
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .world-book-page__title {
+    position: relative;
+    margin: 0.7rem 0 1rem;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3.1rem);
+    font-weight: 600;
+    line-height: 1.05;
+    color: #1d1810;
+  }
+
+  .world-book-page__body {
+    position: relative;
+    flex: 1;
+    display: grid;
+    gap: 0.9rem;
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+
+  .world-book-page__body p {
+    margin: 0;
+  }
+
+  .world-book-page__foot {
+    position: relative;
+    margin-top: 1.4rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(90, 60, 20, 0.18);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .world-book-page[data-kind="cover"] .world-book-page__title {
+    margin-top: 1.4rem;
+    font-size: clamp(2.4rem, 6vw, 3.6rem);
+  }
+
+  .world-book-page[data-kind="closing"] {
+    background:
+      linear-gradient(105deg, rgba(255, 255, 255, 0.12), transparent 28%),
+      linear-gradient(180deg, #efe2c0, #dcc89a);
+  }
+
+  .world-book-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .world-book-nav {
+    border-radius: 999px;
+    border: 1px solid var(--color-line);
+    background: var(--color-panel);
+    color: var(--color-gold-soft);
+    padding: 0.55rem 1rem;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .world-book-nav:hover:not(:disabled) {
+    border-color: var(--color-gold);
+  }
+
+  .world-book-nav:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .world-book-progress {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem;
+    max-width: 42%;
+  }
+
+  .world-book-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: rgba(212, 176, 96, 0.25);
+    border: 0;
+    padding: 0;
+  }
+
+  .world-book-dot.is-active {
+    width: 1.1rem;
+    background: var(--color-gold);
+  }
+
+  .world-book-keys {
+    margin: 0.7rem 0 0;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--color-dim);
+  }
+
+  @keyframes book-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes book-rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .world-book-progress {
+      display: none;
+    }
+
+    .world-book-shell {
+      padding: 0.75rem 0.75rem 0.75rem 1.05rem;
+    }
+
+    .world-book-leaf {
+      min-height: min(68vh, 560px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .world-book-leaf,
+    .world-book-trigger,
+    .world-book-modal__backdrop,
+    .world-book-stage {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+</style>
+
+<script>
+  import { WORLD_BOOK } from "../lib/world-book";
+
+  const root = document.getElementById("world-book-root");
+  if (root) {
+    const pages = WORLD_BOOK;
+    const modal = root.querySelector<HTMLElement>("[data-book-modal]");
+    const leaf = root.querySelector<HTMLElement>("[data-book-leaf]");
+    const pageEl = root.querySelector<HTMLElement>("[data-book-page]");
+    const kickerEl = root.querySelector<HTMLElement>("[data-book-kicker]");
+    const titleEl = root.querySelector<HTMLElement>("[data-book-title]");
+    const bodyEl = root.querySelector<HTMLElement>("[data-book-body]");
+    const numEl = root.querySelector<HTMLElement>("[data-book-num]");
+    const dotsEl = root.querySelector<HTMLElement>("[data-book-dots]");
+    const prevBtn = root.querySelector<HTMLButtonElement>("[data-book-prev]");
+    const nextBtn = root.querySelector<HTMLButtonElement>("[data-book-next]");
+    const openBtns = root.querySelectorAll("[data-book-open]");
+    const closeEls = root.querySelectorAll("[data-book-close]");
+
+    let index = 0;
+    let busy = false;
+    let lastFocus: HTMLElement | null = null;
+
+    const renderDots = () => {
+      if (!dotsEl) return;
+      dotsEl.innerHTML = "";
+      pages.forEach((_, i) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "world-book-dot" + (i === index ? " is-active" : "");
+        b.setAttribute("aria-label", `Страница ${i + 1}`);
+        b.addEventListener("click", () => go(i));
+        dotsEl.appendChild(b);
+      });
+    };
+
+    const paint = () => {
+      const page = pages[index];
+      if (!page || !pageEl || !titleEl || !bodyEl || !numEl || !kickerEl) return;
+      pageEl.dataset.kind = page.kind;
+      kickerEl.textContent = page.kicker || (page.kind === "cover" ? "Книга мира" : "Universe War History");
+      titleEl.textContent = page.title;
+      bodyEl.replaceChildren(
+        ...page.paragraphs.map((text) => {
+          const p = document.createElement("p");
+          p.textContent = text;
+          return p;
+        }),
+      );
+      numEl.textContent = `Страница ${index + 1} / ${pages.length}`;
+      if (prevBtn) prevBtn.disabled = index <= 0;
+      if (nextBtn) nextBtn.disabled = index >= pages.length - 1;
+      renderDots();
+    };
+
+    const go = async (next: number) => {
+      if (busy || next < 0 || next >= pages.length || next === index) return;
+      const forward = next > index;
+      busy = true;
+      leaf?.classList.add(forward ? "is-turn-next" : "is-turn-prev");
+      await new Promise((r) => setTimeout(r, 220));
+      index = next;
+      paint();
+      leaf?.classList.remove("is-turn-next", "is-turn-prev");
+      busy = false;
+    };
+
+    const open = () => {
+      if (!modal) return;
+      lastFocus = document.activeElement as HTMLElement | null;
+      modal.hidden = false;
+      document.body.style.overflow = "hidden";
+      paint();
+      nextBtn?.focus();
+    };
+
+    const close = () => {
+      if (!modal) return;
+      modal.hidden = true;
+      document.body.style.overflow = "";
+      lastFocus?.focus();
+    };
+
+    openBtns.forEach((btn) => btn.addEventListener("click", open));
+    closeEls.forEach((el) => el.addEventListener("click", close));
+    prevBtn?.addEventListener("click", () => go(index - 1));
+    nextBtn?.addEventListener("click", () => go(index + 1));
+
+    pageEl?.addEventListener("click", (event) => {
+      const rect = pageEl.getBoundingClientRect();
+      const x = (event as MouseEvent).clientX - rect.left;
+      if (x < rect.width * 0.28) go(index - 1);
+      else if (x > rect.width * 0.72) go(index + 1);
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (modal?.hidden) return;
+      if (event.key === "Escape") close();
+      if (event.key === "ArrowRight" || event.key === "PageDown") {
+        event.preventDefault();
+        go(index + 1);
+      }
+      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        event.preventDefault();
+        go(index - 1);
+      }
+    });
+
+    paint();
+    if (root.dataset.autoOpen === "1") open();
+  }
+</script>

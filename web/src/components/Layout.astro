@@ -11,6 +11,7 @@ const { title, description = "Канон вселенной Universe War History
   Astro.props;
 const pageTitle = title === "Universe War History" ? title : `${title} — Universe War History`;
 const nav = [
+  { href: sitePath("/book"), label: "Книга" },
   { href: sitePath("/earth"), label: "Земля" },
   { href: sitePath("/titania"), label: "Титания" },
   { href: sitePath("/universe"), label: "Вселенная" },

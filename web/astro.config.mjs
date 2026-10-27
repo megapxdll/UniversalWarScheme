@@ -25,8 +25,10 @@ export default defineConfig({
               const id = mod.id?.replaceAll("\\", "/") ?? "";
               if (
                 id.includes("/src/lib/lore") ||
+                id.includes("/src/lib/world-book") ||
                 id.includes("/src/pages/[collection]/[slug].astro") ||
-                id.includes("/src/pages/[collection]/index.astro")
+                id.includes("/src/pages/[collection]/index.astro") ||
+                id.includes("/src/pages/book.astro")
               ) {
                 server.moduleGraph.invalidateModule(mod);
               }

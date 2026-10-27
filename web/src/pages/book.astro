@@ -1,0 +1,43 @@
+---
+import Layout from "../components/Layout.astro";
+import WorldBook from "../components/WorldBook.astro";
+import { WORLD_BOOK_PAGE_COUNT } from "../lib/world-book";
+import { sitePath } from "../lib/paths";
+
+const autoOpen = Astro.url.searchParams.get("open") === "1";
+---
+
+<Layout
+  title="Книга мира"
+  description="Перелистываемая книга истории Universe War History: от Кута и древних рас до каркаса эпох XII–XXII."
+>
+  <section class="relative overflow-hidden pb-4">
+    <div
+      class="pointer-events-none absolute inset-x-0 -top-24 h-72 bg-[radial-gradient(ellipse_at_top,rgba(212,176,96,0.16),transparent_60%)]"
+      aria-hidden="true"
+    >
+    </div>
+    <p class="relative text-xs uppercase tracking-[0.28em] text-gold">Публичная история</p>
+    <h1 class="relative mt-3 max-w-3xl font-display text-5xl leading-tight text-gold-soft sm:text-6xl">
+      Книга мира
+    </h1>
+    <p class="relative mt-5 max-w-2xl text-lg leading-8 text-mist">
+      Короткая повесть канона в виде книги: правила силы, древние расы, земная линия Артура и путь эпох.
+      {WORLD_BOOK_PAGE_COUNT} страниц — без выдуманных деталей сверх уже закреплённого.
+    </p>
+  </section>
+
+  <section class="mt-8 max-w-2xl">
+    <WorldBook autoOpen={autoOpen} />
+  </section>
+
+  <section class="mt-12 max-w-2xl text-sm leading-7 text-dim">
+    <p>
+      После книги можно углубиться в энциклопедию:
+      <a class="text-gold hover:text-gold-soft" href={sitePath("/chronology")}>хронология</a>,
+      <a class="text-gold hover:text-gold-soft" href={sitePath("/earth")}>Земля</a>,
+      <a class="text-gold hover:text-gold-soft" href={sitePath("/titania")}>Титания</a>,
+      <a class="text-gold hover:text-gold-soft" href={sitePath("/universe")}>Вселенная</a>.
+    </p>
+  </section>
+</Layout>
