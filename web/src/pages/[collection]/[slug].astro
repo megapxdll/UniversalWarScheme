@@ -63,9 +63,14 @@ const collectionMeta = COLLECTIONS[collection];
       <h1 class="mt-3 font-display text-5xl text-gold-soft">{entity.title}</h1>
       {
         entity.type === "character" &&
-          [entity.extra.fioRu, entity.extra.fioEn].some((name) => name && name !== entity.title) && (
+          [entity.extra.fioEn, entity.extra.heroNames, entity.extra.wikiTitle].some(
+            (name) => name && name !== entity.title,
+          ) && (
           <p class="mt-3 text-lg text-mist">
-            {[entity.extra.fioRu, entity.extra.fioEn].filter((name) => name && name !== entity.title).join(" · ")}
+            {[entity.extra.fioEn, entity.extra.heroNames, entity.extra.wikiTitle]
+              .filter((name) => name && name !== entity.title)
+              .filter((name, index, list) => list.indexOf(name) === index)
+              .join(" · ")}
           </p>
         )
       }

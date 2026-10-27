@@ -308,7 +308,13 @@ function buildIndex(): LoreIndex {
 
   for (const file of files) {
     const rel = path.relative(root, file);
-    const parsed = matter(fs.readFileSync(file, "utf8"));
+    let parsed: ReturnType<typeof matter>;
+    try {
+      parsed = matter(fs.readFileSync(file, "utf8"));
+    } catch (error) {
+      console.error(`[lore] skip broken note ${rel}:`, error);
+      continue;
+    }
     const fmResult = Frontmatter.safeParse(parsed.data);
     const fm = fmResult.success ? fmResult.data : (parsed.data as Record<string, unknown>);
     const type = inferType(rel, asString(fm.type));
@@ -332,7 +338,11 @@ function buildIndex(): LoreIndex {
     const aliases = (Array.isArray(fm.aliases) ? fm.aliases.filter(Boolean) : []).filter(
       (name, index, list): name is string => Boolean(name) && list.indexOf(name) === index,
     );
-    const displayTitle = title || fioRu || aliases[0] || fioEn || stem;
+    // Characters: show the admin FIO first. Wiki filename/H1 stays for links and slug.
+    const displayTitle =
+      type === "character"
+        ? fioRu || aliases[0] || fioEn || title || stem
+        : title || stem;
     const tags = Array.isArray(fm.tags) ? fm.tags : fm.tags ? [String(fm.tags)] : [];
     const status = String(fm.status ?? "published").toLowerCase() === "draft" ? "draft" : "published";
     const collection = collectionForType(type);
@@ -349,6 +359,7 @@ function buildIndex(): LoreIndex {
         cycle: pickFm(data, "цикл перерождений", "cycle"),
         fioRu,
         fioEn,
+        wikiTitle: title !== displayTitle ? title : undefined,
         heroNames: aliases.join(", ") || undefined,
         secondName,
         gender: pickFm(data, "пол", "gender"),
@@ -524,8 +535,9 @@ export function entitiesOf(type: EntityType): LoreEntity[] {
 
 export function cardSubtitle(entity: LoreEntity): string {
   if (entity.type === "character") {
-    return [entity.extra.fioRu, entity.extra.fioEn, entity.extra.heroNames, entity.extra.lifeStatus]
+    return [entity.extra.fioEn, entity.extra.heroNames, entity.extra.wikiTitle, entity.extra.lifeStatus]
       .filter(Boolean)
+      .filter((value) => value !== entity.title)
       .filter((value, index, list) => list.indexOf(value) === index)
       .join(" · ");
   }
