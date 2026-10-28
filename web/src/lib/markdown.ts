@@ -56,8 +56,35 @@ function dropPortraitEmbed(markdown: string, files: string[]): string {
   return next;
 }
 
+/** Age / life status / dates are period-relative; hide until a timeline exists. */
+function stripPeriodSensitiveProfile(markdown: string): string {
+  return markdown
+    .replace(/^[-*]\s*(?:Возраст|Жизненный статус|Дата рождения|Дата смерти)\s*:.*$/gim, "")
+    .replace(/\n{3,}/g, "\n\n");
+}
+
+/** Combat + abilities render in dedicated UI blocks — drop duplicate markdown sections. */
+function stripCombatSections(markdown: string): string {
+  const lines = markdown.replaceAll("\r\n", "\n").split("\n");
+  const out: string[] = [];
+  let skip = false;
+  for (const line of lines) {
+    if (/^##\s+(Боевая статистика|Способности)\s*$/i.test(line)) {
+      skip = true;
+      continue;
+    }
+    if (skip && /^##\s+/.test(line)) skip = false;
+    if (!skip) out.push(line);
+  }
+  return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
 export function renderEntityHtml(entity: LoreEntity, lore: LoreIndex): string {
   let markdown = dropFirstHeading(entity.body);
+  if (entity.type === "character") {
+    markdown = stripPeriodSensitiveProfile(markdown);
+    markdown = stripCombatSections(markdown);
+  }
   markdown = dropPortraitEmbed(
     markdown,
     entity.portraits.map((slide) => slide.file).concat(entity.extra.portrait ? [entity.extra.portrait] : []),

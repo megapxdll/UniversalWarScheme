@@ -97,6 +97,42 @@ function looksBlock(fields: Record<string, unknown>, portrait: string): string {
   return `облики:\n${items.map((item) => `  - файл: ${item.file}\n    имя: ${dumpScalar(item.label)}`).join("\n")}\n`;
 }
 
+function abilitiesYaml(fields: Record<string, unknown>): string {
+  const raw = fields.abilities;
+  if (!Array.isArray(raw) || !raw.length) return "способности: []\n";
+  const lines: string[] = ["способности:"];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const rec = item as Record<string, unknown>;
+    const name = String(rec.name ?? rec.имя ?? "").trim();
+    if (!name) continue;
+    const kind = String(rec.kind ?? rec.вид ?? "пассивная").trim() || "пассивная";
+    const description = String(rec.description ?? rec.описание ?? "").trim();
+    lines.push(`  - имя: ${dumpScalar(name)}`);
+    lines.push(`    вид: ${dumpScalar(kind)}`);
+    lines.push(`    описание: ${dumpScalar(description)}`);
+  }
+  if (lines.length === 1) return "способности: []\n";
+  return `${lines.join("\n")}\n`;
+}
+
+function abilitiesMarkdown(fields: Record<string, unknown>): string {
+  const raw = fields.abilities;
+  if (!Array.isArray(raw) || !raw.length) return "";
+  const blocks: string[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const rec = item as Record<string, unknown>;
+    const name = String(rec.name ?? rec.имя ?? "").trim();
+    if (!name) continue;
+    const kind = String(rec.kind ?? rec.вид ?? "пассивная").trim() || "пассивная";
+    const description = String(rec.description ?? rec.описание ?? "").trim();
+    blocks.push(`- **${name}** (${kind})${description ? `: ${description}` : ""}`);
+  }
+  if (!blocks.length) return "";
+  return `\n## Способности\n${blocks.join("\n")}\n`;
+}
+
 function characterMarkdown(wikiTitle: string, aliases: string[], fields: Record<string, unknown>): string {
   const family = list(fields.family);
   const romance = list(fields.romance);
@@ -112,12 +148,14 @@ function characterMarkdown(wikiTitle: string, aliases: string[], fields: Record<
   const fioRu = field(fields, "fioRu");
   const fioEn = field(fields, "fioEn");
   const cycle = field(fields, "cycle");
+  const birthDate = field(fields, "birthDate");
   const stats = ["strength", "speed", "stamina", "intellect"].map((key) => Number(fields[key]));
   const autoOverall =
     field(fields, "overall") ||
     (stats.every((n) => Number.isFinite(n) && n > 0) ? String(stats.reduce((a, b) => a + b, 0)) : "");
   const cycleYaml = cycle ? `цикл перерождений: ${dumpScalar(cycle)}\n` : "";
   const cycleBullet = cycle ? `- Цикл перерождений: ${cycle}\n` : "";
+  const birthYaml = birthDate ? `дата рождения: ${dumpScalar(birthDate)}\n` : "";
 
   return `---
 type: character
@@ -127,22 +165,16 @@ tags:
 aliases: ${aliases.length ? `[${aliases.map((item) => dumpScalar(item)).join(", ")}]` : "[]"}
 портрет: ${dumpScalar(portrait)}
 ${looks}
-
 имя: ${dumpScalar(fioRu)}
 имя_en: ${dumpScalar(fioEn)}
 второе имя: ${dumpScalar(field(fields, "secondName"))}
 пол: ${dumpScalar(field(fields, "gender"))}
-возраст: ${dumpScalar(field(fields, "age"))}
-дата рождения: ${dumpScalar(field(fields, "birthDate"))}
-место рождения: ${dumpScalar(wiki(birthplace))}
-дата смерти: ${dumpScalar(field(fields, "deathDate"))}
-жизненный статус: ${dumpScalar(field(fields, "lifeStatus") || "жив")}
+${birthYaml}место рождения: ${dumpScalar(wiki(birthplace))}
 фракция: ${dumpScalar(dumpWikiLine(factions))}
 раса: ${dumpScalar(field(fields, "race"))}
 стихия: ${dumpScalar(field(fields, "element"))}
 роль: ${dumpScalar(field(fields, "role"))}
 ${cycleYaml}
-
 внешность:
   рост: ${dumpScalar(field(fields, "height"))}
   вес: ${dumpScalar(field(fields, "weight"))}
@@ -162,7 +194,7 @@ ${cycleYaml}
     интеллект: ${dumpScalar(field(fields, "intellect"))}
     общий показатель: ${dumpScalar(autoOverall)}
 
-связи:
+${abilitiesYaml(fields)}связи:
   семья: ${dumpWikiList(family)}
   романтика: ${dumpWikiList(romance)}
   друзья: ${dumpWikiList(friends)}
@@ -177,17 +209,12 @@ ${portrait ? `\n![[${portrait}]]\n` : ""}
 - ФИО (англ.): ${fioEn}
 - Наименование: ${aliases.join(", ")}
 - Пол: ${field(fields, "gender")}
-- Возраст: ${field(fields, "age")}
-- Дата рождения: ${field(fields, "birthDate")}
 - Место рождения: ${wiki(birthplace)}
-- Дата смерти: ${field(fields, "deathDate")}
-- Жизненный статус: ${field(fields, "lifeStatus") || "жив"}
 - Фракция: ${dumpWikiLine(factions)}
 - Раса: ${field(fields, "race")}
 - Стихия: ${field(fields, "element")}
 - Роль: ${field(fields, "role")}
 ${cycleBullet}
-
 ## Внешность
 - Рост: ${field(fields, "height")}
 - Вес: ${field(fields, "weight")}
@@ -205,7 +232,7 @@ ${lookNotes ? `\n${lookNotes}\n` : ""}
 - Выносливость: ${field(fields, "stamina")}
 - Интеллект: ${field(fields, "intellect")}
 - Общий показатель: ${autoOverall}
-
+${abilitiesMarkdown(fields)}
 ## Связи
 - Семья:
 ${mdList(family)}

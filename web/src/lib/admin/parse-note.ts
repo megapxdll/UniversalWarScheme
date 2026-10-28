@@ -50,6 +50,24 @@ function names(data: Record<string, unknown>, ...keys: string[]): string[] {
   return [];
 }
 
+function parseAbilities(data: Record<string, unknown>): { name: string; kind: string; description: string }[] {
+  const raw = data.способности ?? data.abilities ?? data.powers;
+  if (!Array.isArray(raw)) return [];
+  const out: { name: string; kind: string; description: string }[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const rec = item as Record<string, unknown>;
+    const name = String(rec.имя ?? rec.name ?? rec.title ?? "").trim();
+    if (!name) continue;
+    out.push({
+      name,
+      kind: String(rec.вид ?? rec.kind ?? rec.type ?? "пассивная").trim() || "пассивная",
+      description: String(rec.описание ?? rec.description ?? rec.desc ?? "").trim(),
+    });
+  }
+  return out;
+}
+
 function firstHeading(body: string): string {
   return body.match(/^#{1,3}\s+(.+)$/m)?.[1]?.trim() ?? "";
 }
@@ -207,6 +225,7 @@ export function parseNote(sourcePath: string): ParsedNote {
       stamina: scalar(data, "боевая статистика.параметры.выносливость", "combat.stats.stamina"),
       intellect: scalar(data, "боевая статистика.параметры.интеллект", "combat.stats.intellect"),
       overall: scalar(data, "боевая статистика.параметры.общий показатель", "combat.stats.overall"),
+      abilities: parseAbilities(data),
       family: names(data, "связи.семья", "relations.family"),
       romance: names(data, "связи.романтика", "relations.romance"),
       friends: names(data, "связи.друзья", "relations.friends"),

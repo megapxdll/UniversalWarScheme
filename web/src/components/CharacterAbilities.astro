@@ -1,0 +1,41 @@
+---
+import type { CharacterAbility } from "../lib/lore";
+
+interface Props {
+  abilities: CharacterAbility[];
+}
+
+const { abilities } = Astro.props;
+
+const kindClass: Record<string, string> = {
+  пассивная: "border-line text-mist",
+  активная: "border-gold/40 text-gold",
+  ультимативная: "border-gold text-gold-soft",
+};
+---
+
+{
+  abilities.length > 0 && (
+    <section class="mb-8 rounded-2xl border border-line bg-panel/70 p-5">
+      <h2 class="text-xs uppercase tracking-[0.18em] text-dim">Способности</h2>
+      <ul class="mt-4 space-y-4">
+        {abilities.map((ability) => (
+          <li class="rounded-xl border border-line/80 bg-ink/40 p-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 class="font-display text-xl text-gold-soft">{ability.name}</h3>
+              <span
+                class:list={[
+                  "rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.14em]",
+                  kindClass[ability.kind] ?? kindClass.пассивная,
+                ]}
+              >
+                {ability.kind}
+              </span>
+            </div>
+            {ability.description && <p class="mt-2 text-sm leading-relaxed text-mist">{ability.description}</p>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}

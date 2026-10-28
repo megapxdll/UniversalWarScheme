@@ -30,7 +30,10 @@ export function epochSortKey(value: string | undefined): number {
   if (!value) return 9000;
   const text = value.toLowerCase().replace(/эпоха/g, " ").replace(/[—–-]/g, " ");
   for (const [roman, n] of ROMAN) {
-    const match = text.match(new RegExp(`(?:^|[^a-z])${roman}(?:\\.(\\d+))?(?:$|[^a-z])`));
+    // Lookahead: '.' starts a fractional epoch (XIII.5), not a word boundary.
+    const match = text.match(
+      new RegExp(`(?:^|[^a-z])${roman}(?:\\.(\\d+))?(?=$|[^a-z0-9.])`),
+    );
     if (match) return n * 10 + (match[1] ? Number(match[1]) : 0);
   }
   return 9000;

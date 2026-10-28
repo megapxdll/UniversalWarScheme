@@ -116,6 +116,83 @@ function section(form: HTMLFormElement, type: string): HTMLElement | null {
   return form.querySelector(`[data-type-form="${type}"]`);
 }
 
+type AbilityDraft = { name: string; kind: string; description: string };
+
+function abilityRows(): HTMLElement | null {
+  return document.querySelector("#abilities-list");
+}
+
+function collectAbilities(): AbilityDraft[] {
+  const list = abilityRows();
+  if (!list) return [];
+  const out: AbilityDraft[] = [];
+  for (const row of list.querySelectorAll<HTMLElement>("[data-ability-row]")) {
+    const name = row.querySelector<HTMLInputElement>('[data-ability-field="name"]')?.value.trim() ?? "";
+    const kind = row.querySelector<HTMLSelectElement>('[data-ability-field="kind"]')?.value.trim() ?? "пассивная";
+    const description = row.querySelector<HTMLTextAreaElement>('[data-ability-field="description"]')?.value.trim() ?? "";
+    if (!name) continue;
+    out.push({ name, kind, description });
+  }
+  return out;
+}
+
+function addAbilityRow(data?: Partial<AbilityDraft>) {
+  const list = abilityRows();
+  if (!list) return;
+  const row = document.createElement("div");
+  row.className = "rounded-xl border border-line bg-ink/40 p-4";
+  row.dataset.abilityRow = "1";
+  row.innerHTML = `
+    <div class="grid gap-3 sm:grid-cols-[1fr_10rem_auto]">
+      <label>
+        <span class="admin-label">Название</span>
+        <input data-ability-field="name" class="admin-input" placeholder="Регенерация" />
+      </label>
+      <label>
+        <span class="admin-label">Вид</span>
+        <select data-ability-field="kind" class="admin-select">
+          <option value="пассивная">пассивная</option>
+          <option value="активная">активная</option>
+          <option value="ультимативная">ультимативная</option>
+        </select>
+      </label>
+      <button type="button" data-ability-remove class="self-end rounded-xl border border-line px-3 py-2 text-sm text-dim hover:border-gold/50 hover:text-gold" aria-label="Удалить">×</button>
+    </div>
+    <label class="mt-3 block">
+      <span class="admin-label">Описание</span>
+      <textarea data-ability-field="description" rows="2" class="admin-textarea" placeholder="Что делает способность"></textarea>
+    </label>
+  `;
+  const nameInput = row.querySelector<HTMLInputElement>('[data-ability-field="name"]');
+  const kindSelect = row.querySelector<HTMLSelectElement>('[data-ability-field="kind"]');
+  const descInput = row.querySelector<HTMLTextAreaElement>('[data-ability-field="description"]');
+  if (nameInput) nameInput.value = data?.name ?? "";
+  if (kindSelect) kindSelect.value = data?.kind || "пассивная";
+  if (descInput) descInput.value = data?.description ?? "";
+  row.querySelector("[data-ability-remove]")?.addEventListener("click", () => row.remove());
+  list.append(row);
+}
+
+function fillAbilities(value: unknown) {
+  const list = abilityRows();
+  if (!list) return;
+  list.innerHTML = "";
+  const items = Array.isArray(value) ? value : [];
+  if (!items.length) {
+    addAbilityRow();
+    return;
+  }
+  for (const item of items) {
+    if (!item || typeof item !== "object") continue;
+    const rec = item as Record<string, unknown>;
+    addAbilityRow({
+      name: String(rec.name ?? rec.имя ?? ""),
+      kind: String(rec.kind ?? rec.вид ?? "пассивная"),
+      description: String(rec.description ?? rec.описание ?? ""),
+    });
+  }
+}
+
 function collect(form: HTMLFormElement, type: string): Record<string, unknown> {
   const root = section(form, type);
   if (!root) return {};
@@ -123,6 +200,7 @@ function collect(form: HTMLFormElement, type: string): Record<string, unknown> {
   for (const input of root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("[name]")) {
     if (input instanceof HTMLInputElement && input.type === "file") continue;
     if (input.closest(".entity-picker")) continue;
+    if (input.closest("[data-ability-row]")) continue;
     fields[input.name] = input.value.trim();
   }
   for (const picker of root.querySelectorAll<HTMLElement>(".entity-picker")) {
@@ -131,6 +209,7 @@ function collect(form: HTMLFormElement, type: string): Record<string, unknown> {
     const values = chips(picker);
     fields[name] = picker.dataset.multiple === "false" ? (values[0] ?? "") : values;
   }
+  if (type === "character") fields.abilities = collectAbilities();
   return fields;
 }
 
@@ -240,6 +319,7 @@ function fillNote(form: HTMLFormElement, typeSelect: HTMLSelectElement, note: Pa
     const overall = fieldEl(form, "overall", "character");
     if (overall) overall.dataset.touched = "1";
   }
+  if (note.type === "character") fillAbilities(fields.abilities);
   if (note.portrait) setField(form, "portrait", note.portrait);
   if (note.portraitUrl) showPortrait(note.portraitUrl, note.portrait);
 
@@ -317,6 +397,7 @@ export async function bootAdmin() {
   showType(form, typeSelect.value);
   typeSelect.addEventListener("change", () => {
     showType(form, typeSelect.value);
+    if (typeSelect.value === "character" && !abilityRows()?.childElementCount) fillAbilities([]);
     const url = new URL(window.location.href);
     url.searchParams.set("type", typeSelect.value);
     history.replaceState({}, "", url);
@@ -329,6 +410,10 @@ export async function bootAdmin() {
   form.querySelector('[name="overall"]')?.addEventListener("input", (event) => {
     (event.currentTarget as HTMLInputElement).dataset.touched = "1";
   });
+  document.querySelector("#ability-add")?.addEventListener("click", () => addAbilityRow());
+  if (!document.querySelector("#source-path")?.value && typeSelect.value === "character") {
+    fillAbilities([]);
+  }
 
   const portraitFile = document.querySelector<HTMLInputElement>("#portrait-file");
   portraitFile?.addEventListener("change", () => {

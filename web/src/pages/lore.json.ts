@@ -16,6 +16,7 @@ export const GET: APIRoute = () => {
       excerpt: entity.excerpt,
       aliases: entity.aliases,
       tags: entity.tags,
+      abilities: entity.abilities,
       extra: entity.extra,
       wikiLinks: entity.wikiLinks.map((link) => link.target),
       sourcePath: entity.sourcePath,

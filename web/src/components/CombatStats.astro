@@ -1,0 +1,80 @@
+---
+interface Props {
+  strength?: string;
+  speed?: string;
+  stamina?: string;
+  intellect?: string;
+  overall?: string;
+  abilityType?: string;
+  weapon?: string;
+  fightingStyle?: string;
+}
+
+const { strength, speed, stamina, intellect, overall, abilityType, weapon, fightingStyle } = Astro.props;
+
+const stats = [
+  { label: "Сила", value: strength },
+  { label: "Скорость", value: speed },
+  { label: "Выносливость", value: stamina },
+  { label: "Интеллект", value: intellect },
+].filter((item) => item.value);
+
+const maxStat = 10;
+const hasCombat = stats.length > 0 || overall || abilityType || weapon || fightingStyle;
+
+function barWidth(raw?: string): number {
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return Math.min(100, Math.round((n / maxStat) * 100));
+}
+---
+
+{
+  hasCombat && (
+    <section class="mb-8 rounded-2xl border border-line bg-panel/70 p-5">
+      <h2 class="text-xs uppercase tracking-[0.18em] text-dim">Боевая статистика</h2>
+      {(abilityType || weapon || fightingStyle) && (
+        <dl class="mt-4 grid gap-3 sm:grid-cols-2">
+          {abilityType && (
+            <div>
+              <dt class="text-xs uppercase tracking-[0.16em] text-dim">Тип способностей</dt>
+              <dd class="mt-1 text-mist">{abilityType}</dd>
+            </div>
+          )}
+          {weapon && (
+            <div>
+              <dt class="text-xs uppercase tracking-[0.16em] text-dim">Оружие</dt>
+              <dd class="mt-1 text-mist">{weapon}</dd>
+            </div>
+          )}
+          {fightingStyle && (
+            <div class="sm:col-span-2">
+              <dt class="text-xs uppercase tracking-[0.16em] text-dim">Боевой стиль</dt>
+              <dd class="mt-1 text-mist">{fightingStyle}</dd>
+            </div>
+          )}
+        </dl>
+      )}
+      {stats.length > 0 && (
+        <ul class="mt-5 space-y-3">
+          {stats.map((stat) => (
+            <li>
+              <div class="mb-1 flex items-baseline justify-between gap-3">
+                <span class="text-sm text-mist">{stat.label}</span>
+                <span class="font-display text-lg text-gold-soft">{stat.value}</span>
+              </div>
+              <div class="h-2 overflow-hidden rounded-full bg-ink/80">
+                <div class="h-full rounded-full bg-gold/80" style={`width:${barWidth(stat.value)}%`} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {overall && (
+        <p class="mt-5 border-t border-line pt-4 text-sm text-mist">
+          Общий показатель: <span class="font-display text-xl text-gold-soft">{overall}</span>
+        </p>
+      )}
+    </section>
+  )
+}

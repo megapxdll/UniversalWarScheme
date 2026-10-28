@@ -96,6 +96,15 @@ export type PortraitSlide = {
   url: string;
 };
 
+export const ABILITY_KINDS = ["пассивная", "активная", "ультимативная"] as const;
+export type AbilityKind = (typeof ABILITY_KINDS)[number];
+
+export type CharacterAbility = {
+  name: string;
+  kind: AbilityKind;
+  description: string;
+};
+
 export type LoreEntity = {
   id: string;
   slug: string;
@@ -112,6 +121,7 @@ export type LoreEntity = {
   wikiLinks: WikiLink[];
   portraits: PortraitSlide[];
   story: StoryWorld;
+  abilities: CharacterAbility[];
   extra: Record<string, string | undefined>;
 };
 
@@ -250,6 +260,31 @@ function pickFm(data: Record<string, unknown>, ...paths: string[]): string | und
   return undefined;
 }
 
+function normalizeAbilityKind(raw: string): AbilityKind {
+  const text = raw.trim().toLowerCase();
+  if (text.startsWith("ult") || text.includes("ульт")) return "ультимативная";
+  if (text.startsWith("act") || text.includes("актив")) return "активная";
+  return "пассивная";
+}
+
+export function parseCharacterAbilities(data: Record<string, unknown>): CharacterAbility[] {
+  const raw = data.способности ?? data.abilities ?? data.powers;
+  if (!Array.isArray(raw)) return [];
+  const out: CharacterAbility[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const rec = item as Record<string, unknown>;
+    const name = formatMeta(rec.имя ?? rec.name ?? rec.title);
+    if (!name) continue;
+    out.push({
+      name,
+      kind: normalizeAbilityKind(String(rec.вид ?? rec.kind ?? rec.type ?? "пассивная")),
+      description: formatMeta(rec.описание ?? rec.description ?? rec.desc) ?? "",
+    });
+  }
+  return out;
+}
+
 export function canonImageUrl(filename: string | undefined): string | undefined {
   if (!filename) return undefined;
   const name = filename.replaceAll("\\", "/").split("/").pop()?.trim();
@@ -351,6 +386,7 @@ function buildIndex(): LoreIndex {
       .filter(Boolean);
     const portrait = portraitFile(data, body);
     const portraits = portraitSlides(data, body, portrait);
+    const abilities = type === "character" ? parseCharacterAbilities(data) : [];
     const sourcePath = rel.replaceAll("\\", "/");
     const extra = {
         role: pickFm(data, "роль", "role") || bulletField(body, "Роль"),
@@ -426,6 +462,7 @@ function buildIndex(): LoreIndex {
       names,
       wikiLinks: extractWikiLinks(body),
       portraits,
+      abilities,
       story: inferStoryWorld({
         type,
         sourcePath,
@@ -535,7 +572,19 @@ export function entitiesOf(type: EntityType): LoreEntity[] {
 
 export function cardSubtitle(entity: LoreEntity): string {
   if (entity.type === "character") {
-    return [entity.extra.fioEn, entity.extra.heroNames, entity.extra.wikiTitle, entity.extra.lifeStatus]
+    const combatHint = [entity.extra.strength, entity.extra.speed, entity.extra.stamina, entity.extra.intellect].some(
+      Boolean,
+    )
+      ? [
+          entity.extra.strength && `Сил ${entity.extra.strength}`,
+          entity.extra.speed && `Скор ${entity.extra.speed}`,
+          entity.extra.stamina && `Вын ${entity.extra.stamina}`,
+          entity.extra.intellect && `Инт ${entity.extra.intellect}`,
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : undefined;
+    return [entity.extra.fioEn, entity.extra.heroNames, entity.extra.wikiTitle, combatHint]
       .filter(Boolean)
       .filter((value) => value !== entity.title)
       .filter((value, index, list) => list.indexOf(value) === index)

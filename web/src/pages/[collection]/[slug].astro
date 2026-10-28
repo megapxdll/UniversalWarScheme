@@ -5,6 +5,8 @@ import WikiBody from "../../components/WikiBody.astro";
 import PortraitCarousel from "../../components/PortraitCarousel.astro";
 import StoryAppearances from "../../components/StoryAppearances.astro";
 import StoryChip from "../../components/StoryChip.astro";
+import CombatStats from "../../components/CombatStats.astro";
+import CharacterAbilities from "../../components/CharacterAbilities.astro";
 import {
   COLLECTIONS,
   collectionForType,
@@ -102,15 +104,11 @@ const collectionMeta = COLLECTIONS[collection];
           { label: "ФИО (англ.)", value: entity.extra.fioEn },
           { label: "Наименование", value: entity.extra.heroNames },
           { label: "Пол", value: entity.extra.gender },
-          { label: "Возраст", value: entity.extra.speciesAge },
           { label: "Роль", value: entity.extra.role },
           { label: "Раса", value: entity.extra.race },
           { label: "Стихия", value: entity.extra.element },
           { label: "Цикл перерождений", value: entity.extra.cycle },
-          { label: "Дата рождения", value: entity.extra.birthDate },
           { label: "Место рождения", value: entity.extra.home },
-          { label: "Дата смерти", value: entity.extra.deathDate },
-          { label: "Статус", value: entity.extra.lifeStatus },
           { label: "Фракция", value: entity.extra.faction },
           { label: "Рост", value: entity.extra.height },
           { label: "Вес", value: entity.extra.weight },
@@ -118,14 +116,6 @@ const collectionMeta = COLLECTIONS[collection];
           { label: "Цвет волос", value: entity.extra.hairColor },
           { label: "Цвет глаз", value: entity.extra.eyeColor },
           { label: "Телосложение", value: entity.extra.build },
-          { label: "Тип способностей", value: entity.extra.abilityType },
-          { label: "Основное оружие", value: entity.extra.weapon },
-          { label: "Боевой стиль", value: entity.extra.fightingStyle },
-          { label: "Сила", value: entity.extra.strength },
-          { label: "Скорость", value: entity.extra.speed },
-          { label: "Выносливость", value: entity.extra.stamina },
-          { label: "Интеллект", value: entity.extra.intellect },
-          { label: "Общий показатель", value: entity.extra.overall },
           { label: "Вид", value: entity.extra.kind },
           { label: "Система", value: entity.extra.system },
           { label: "Население", value: entity.extra.population },
@@ -145,6 +135,21 @@ const collectionMeta = COLLECTIONS[collection];
           { label: "Напарники", value: entity.extra.partners },
         ]}
       />
+      {
+        entity.type === "character" && (
+          <CombatStats
+            strength={entity.extra.strength}
+            speed={entity.extra.speed}
+            stamina={entity.extra.stamina}
+            intellect={entity.extra.intellect}
+            overall={entity.extra.overall}
+            abilityType={entity.extra.abilityType}
+            weapon={entity.extra.weapon}
+            fightingStyle={entity.extra.fightingStyle}
+          />
+        )
+      }
+      {entity.type === "character" && <CharacterAbilities abilities={entity.abilities} />}
       <WikiBody entity={entity} />
       {entity.type === "character" && <StoryAppearances character={entity} />}
     </article>
