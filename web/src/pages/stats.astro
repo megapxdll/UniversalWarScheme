@@ -1,0 +1,19 @@
+---
+import Layout from "../components/Layout.astro";
+import CharacterStatsTable from "../components/CharacterStatsTable.astro";
+---
+
+<Layout
+  title="Статистика персонажей"
+  description="Таблица боевых параметров персонажей: от сильнейшего к слабейшему, поиск по ФИО и кличке."
+>
+  <p class="text-xs uppercase tracking-[0.28em] text-gold">Сравнение</p>
+  <h1 class="mt-3 font-display text-5xl text-gold-soft">Статистика</h1>
+  <p class="mt-4 max-w-2xl text-dim">
+    Рейтинг по боевым параметрам. По умолчанию — общий показатель сверху вниз. Ищи по ФИО или кличке, фильтруй поле
+    поиска и сортируй по нужному стату.
+  </p>
+  <div class="mt-8">
+    <CharacterStatsTable />
+  </div>
+</Layout>

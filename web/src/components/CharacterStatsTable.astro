@@ -1,0 +1,204 @@
+---
+import { entitiesOf, type LoreEntity } from "../lib/lore";
+
+function num(value: string | undefined): number | null {
+  if (value == null || value === "") return null;
+  const n = Number(String(value).replace(",", ".").trim());
+  return Number.isFinite(n) ? n : null;
+}
+
+const rows = entitiesOf("character").map((entity: LoreEntity) => {
+  const strength = num(entity.extra.strength);
+  const speed = num(entity.extra.speed);
+  const stamina = num(entity.extra.stamina);
+  const intellect = num(entity.extra.intellect);
+  const overall =
+    num(entity.extra.overall) ??
+    ([strength, speed, stamina, intellect].every((v) => v != null)
+      ? (strength as number) + (speed as number) + (stamina as number) + (intellect as number)
+      : null);
+  const fio = entity.extra.fioRu || entity.title;
+  const nick = [entity.extra.heroNames, ...(entity.aliases ?? [])]
+    .filter(Boolean)
+    .filter((name, index, list) => list.indexOf(name) === index && name !== fio)
+    .join(", ");
+  return {
+    title: entity.title,
+    href: entity.href,
+    fio,
+    nick,
+    fioEn: entity.extra.fioEn || "",
+    strength,
+    speed,
+    stamina,
+    intellect,
+    overall,
+    portraitUrl: entity.extra.portraitUrl || "",
+  };
+});
+---
+
+<div id="stats-root" class="space-y-5">
+  <script id="stats-data" type="application/json" set:html={JSON.stringify(rows)} />
+
+  <div class="grid gap-4 md:grid-cols-[1fr_12rem_12rem]">
+    <label class="block">
+      <span class="mb-2 block text-xs uppercase tracking-[0.16em] text-dim">Поиск</span>
+      <input
+        id="stats-q"
+        type="search"
+        placeholder="ФИО или кличка…"
+        class="w-full rounded-xl border border-line bg-ink px-4 py-3 text-mist outline-none ring-gold/40 placeholder:text-dim focus:ring-2"
+      />
+    </label>
+    <label class="block">
+      <span class="mb-2 block text-xs uppercase tracking-[0.16em] text-dim">Искать в</span>
+      <select
+        id="stats-scope"
+        class="w-full rounded-xl border border-line bg-ink px-4 py-3 text-mist outline-none focus:ring-2 focus:ring-gold/40"
+      >
+        <option value="all">ФИО и кличка</option>
+        <option value="fio">Только ФИО</option>
+        <option value="nick">Только кличка</option>
+      </select>
+    </label>
+    <label class="block">
+      <span class="mb-2 block text-xs uppercase tracking-[0.16em] text-dim">Сортировка (стат)</span>
+      <select
+        id="stats-sort"
+        class="w-full rounded-xl border border-line bg-ink px-4 py-3 text-mist outline-none focus:ring-2 focus:ring-gold/40"
+      >
+        <option value="overall">Общий показатель</option>
+        <option value="strength">Сила</option>
+        <option value="speed">Скорость</option>
+        <option value="stamina">Выносливость</option>
+        <option value="intellect">Интеллект</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-3">
+    <label class="inline-flex items-center gap-2 text-sm text-mist">
+      <input id="stats-has" type="checkbox" class="rounded border-line" checked />
+      Только с заполненным выбранным статом
+    </label>
+    <p id="stats-count" class="text-sm text-dim"></p>
+  </div>
+
+  <div class="overflow-x-auto rounded-2xl border border-line bg-panel/70">
+    <table class="min-w-full text-left text-sm">
+      <thead class="border-b border-line text-xs uppercase tracking-[0.14em] text-dim">
+        <tr>
+          <th class="px-4 py-3 font-medium">#</th>
+          <th class="px-4 py-3 font-medium">Персонаж</th>
+          <th class="px-4 py-3 font-medium">Кличка</th>
+          <th class="cursor-pointer px-4 py-3 font-medium hover:text-gold" data-sort-btn="strength">Сила</th>
+          <th class="cursor-pointer px-4 py-3 font-medium hover:text-gold" data-sort-btn="speed">Скорость</th>
+          <th class="cursor-pointer px-4 py-3 font-medium hover:text-gold" data-sort-btn="stamina">Выносливость</th>
+          <th class="cursor-pointer px-4 py-3 font-medium hover:text-gold" data-sort-btn="intellect">Интеллект</th>
+          <th class="cursor-pointer px-4 py-3 font-medium hover:text-gold" data-sort-btn="overall">Общий</th>
+        </tr>
+      </thead>
+      <tbody id="stats-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const body = document.getElementById("stats-body");
+  const count = document.getElementById("stats-count");
+  const qInput = document.getElementById("stats-q");
+  const scopeSelect = document.getElementById("stats-scope");
+  const sortSelect = document.getElementById("stats-sort");
+  const hasCheck = document.getElementById("stats-has");
+  const dataEl = document.getElementById("stats-data");
+
+  let rows = [];
+  try {
+    rows = dataEl ? JSON.parse(dataEl.textContent || "[]") : [];
+  } catch {
+    rows = [];
+  }
+
+  const escapeHtml = (value) =>
+    String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+
+  const cell = (value) =>
+    value == null ? `<span class="text-dim">—</span>` : `<span class="font-medium text-gold-soft">${value}</span>`;
+
+  const render = () => {
+    if (!body || !count) return;
+    const q = (qInput?.value || "").trim().toLowerCase();
+    const scope = scopeSelect?.value || "all";
+    const key = sortSelect?.value || "overall";
+    const onlyHas = Boolean(hasCheck?.checked);
+
+    let matched = rows.filter((row) => {
+      if (onlyHas && row[key] == null) return false;
+      if (!q) return true;
+      const fioHay = `${row.fio} ${row.fioEn} ${row.title}`.toLowerCase();
+      const nickHay = String(row.nick || "").toLowerCase();
+      if (scope === "fio") return fioHay.includes(q);
+      if (scope === "nick") return nickHay.includes(q);
+      return fioHay.includes(q) || nickHay.includes(q);
+    });
+
+    matched = matched.slice().sort((a, b) => {
+      const an = typeof a[key] === "number" ? a[key] : -1;
+      const bn = typeof b[key] === "number" ? b[key] : -1;
+      if (bn !== an) return bn - an;
+      return String(a.fio).localeCompare(String(b.fio), "ru");
+    });
+
+    count.textContent = `Показано: ${matched.length} из ${rows.length}`;
+
+    body.innerHTML = matched
+      .map((row, index) => {
+        const portrait = row.portraitUrl
+          ? `<img src="${escapeHtml(row.portraitUrl)}" alt="" class="h-9 w-9 rounded-full border border-line object-cover" />`
+          : `<span class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-ink text-xs text-dim">—</span>`;
+        const en =
+          row.fioEn && row.fioEn !== row.fio
+            ? `<span class="block text-xs text-dim">${escapeHtml(row.fioEn)}</span>`
+            : "";
+        return `
+        <tr class="border-b border-line/70 hover:bg-ink/40">
+          <td class="px-4 py-3 text-dim">${index + 1}</td>
+          <td class="px-4 py-3">
+            <a href="${escapeHtml(row.href)}" class="inline-flex items-center gap-3 text-mist hover:text-gold">
+              ${portrait}
+              <span>
+                <span class="block font-display text-lg text-gold-soft">${escapeHtml(row.fio)}</span>
+                ${en}
+              </span>
+            </a>
+          </td>
+          <td class="px-4 py-3 text-mist">${row.nick ? escapeHtml(row.nick) : `<span class="text-dim">—</span>`}</td>
+          <td class="px-4 py-3">${cell(row.strength)}</td>
+          <td class="px-4 py-3">${cell(row.speed)}</td>
+          <td class="px-4 py-3">${cell(row.stamina)}</td>
+          <td class="px-4 py-3">${cell(row.intellect)}</td>
+          <td class="px-4 py-3">${cell(row.overall)}</td>
+        </tr>`;
+      })
+      .join("");
+  };
+
+  qInput?.addEventListener("input", render);
+  scopeSelect?.addEventListener("change", render);
+  sortSelect?.addEventListener("change", render);
+  hasCheck?.addEventListener("change", render);
+  for (const btn of document.querySelectorAll("[data-sort-btn]")) {
+    btn.addEventListener("click", () => {
+      const key = btn.getAttribute("data-sort-btn");
+      if (!key || !sortSelect) return;
+      sortSelect.value = key;
+      render();
+    });
+  }
+  render();
+</script>
