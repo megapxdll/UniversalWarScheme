@@ -4,6 +4,12 @@ status: draft
 tags:
   - character
 aliases: [DeadRunner, Дедраннер]
+портрет: deadrunner.png
+облики:
+  - файл: deadrunner.png
+    имя: основной
+  - файл: dead-runner-unmasked.png
+    имя: без маски
 
 имя:
 имя_en: Adrian Cross
@@ -39,6 +45,8 @@ aliases: [DeadRunner, Дедраннер]
 ---
 
 # DeadRunner
+
+![[deadrunner.png]]
 
 ## Профиль
 - ФИО: 
