@@ -87,12 +87,10 @@ const collectionMeta = COLLECTIONS[collection];
     </div>
   </div>
   {
-    entity.extra.portraitUrl && entity.type !== "character" && (
-      <img
-        src={entity.extra.portraitUrl}
-        alt={entity.title}
-        class="mt-6 w-full max-h-[34rem] rounded-2xl border border-line bg-ink object-contain"
-      />
+    entity.type !== "character" && entity.portraits.length > 0 && (
+      <div class="mt-6">
+        <PortraitCarousel slides={entity.portraits} title={entity.title} wide />
+      </div>
     )
   }
 

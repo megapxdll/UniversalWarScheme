@@ -4,20 +4,24 @@ import type { PortraitSlide } from "../lib/lore";
 interface Props {
   slides: PortraitSlide[];
   title: string;
+  wide?: boolean;
 }
 
-const { slides, title } = Astro.props;
+const { slides, title, wide = false } = Astro.props;
 const first = slides[0];
 ---
 
 {
   first && (
-    <div class="portrait-carousel w-full max-w-[20rem]" data-carousel>
+    <div class:list={["portrait-carousel w-full", wide ? "max-w-5xl" : "max-w-[20rem]"]} data-carousel>
       <script type="application/json" set:html={JSON.stringify(slides)} />
       <img
         src={first.url}
         alt={`${title} — ${first.label}`}
-        class="h-auto w-full max-h-[36rem] rounded-2xl border border-line object-contain bg-ink"
+        class:list={[
+          "h-auto w-full rounded-2xl border border-line bg-ink object-contain",
+          wide ? "max-h-[34rem]" : "max-h-[36rem]",
+        ]}
         data-frame
       />
       <p class="mt-2 text-sm text-mist" data-label>{first.label}</p>

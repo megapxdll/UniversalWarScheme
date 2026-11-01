@@ -3,7 +3,7 @@ import EntityCard from "./EntityCard.astro";
 import Layout from "./Layout.astro";
 import StoryChip from "./StoryChip.astro";
 import { sitePath } from "../lib/paths";
-import { getStoryHub } from "../lib/stories";
+import { getStoryHub, locationTree } from "../lib/stories";
 import { STORIES, type StoryWorld } from "../lib/story-world";
 
 interface Props {
@@ -13,6 +13,7 @@ interface Props {
 const { world } = Astro.props;
 const story = STORIES[world];
 const hub = getStoryHub(world);
+const places = locationTree(world);
 const others = (Object.values(STORIES) as (typeof story)[]).filter((item) => item.id !== world);
 
 const sectionTitle = {
@@ -53,6 +54,51 @@ const sectionTitle = {
       <div class="mt-1 text-mist">{sectionTitle.factions}</div>
     </a>
   </section>
+
+  {places.length > 0 && (
+    <section id="locations" class="mt-14">
+      <h2 class="font-display text-3xl text-gold-soft">Локации</h2>
+      <p class="mt-2 max-w-2xl text-sm text-dim">
+        Планеты этой истории. Столицы и расы показаны внутри своей планеты.
+      </p>
+      <div class="mt-6 space-y-4">
+        {places.map((node) => (
+          <article class="rounded-2xl border border-line bg-panel/70 p-5">
+            <a class="font-display text-2xl text-gold-soft hover:text-gold" href={node.location.href}>
+              {node.location.title}
+            </a>
+            {node.location.extra.kind && <p class="mt-1 text-sm text-dim">{node.location.extra.kind}</p>}
+            {node.children.length > 0 && (
+              <div class="mt-4">
+                <p class="text-xs uppercase tracking-[0.16em] text-dim">Внутри</p>
+                <ul class="mt-2 space-y-2">
+                  {node.children.map((child) => (
+                    <li class="rounded-xl border border-line/70 bg-ink/40 px-4 py-3">
+                      <a class="text-gold-soft hover:text-gold" href={child.href}>{child.title}</a>
+                      {child.extra.kind && <span class="ml-2 text-sm text-dim">{child.extra.kind}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {node.races.length > 0 && (
+              <div class="mt-4">
+                <p class="text-xs uppercase tracking-[0.16em] text-dim">Расы</p>
+                <ul class="mt-2 space-y-3">
+                  {node.races.map((race) => (
+                    <li>
+                      <div class="text-gold-soft">{race.name}</div>
+                      {race.description && <p class="mt-1 text-sm leading-6 text-dim">{race.description}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
+  )}
 
   <section id="characters" class="mt-14">
     <h2 class="font-display text-3xl text-gold-soft">{sectionTitle.characters}</h2>

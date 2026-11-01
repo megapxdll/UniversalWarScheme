@@ -105,6 +105,11 @@ export type CharacterAbility = {
   description: string;
 };
 
+export type LocationRace = {
+  name: string;
+  description: string;
+};
+
 export type LoreEntity = {
   id: string;
   slug: string;
@@ -122,6 +127,7 @@ export type LoreEntity = {
   portraits: PortraitSlide[];
   story: StoryWorld;
   abilities: CharacterAbility[];
+  races: LocationRace[];
   extra: Record<string, string | undefined>;
 };
 
@@ -335,6 +341,25 @@ function portraitSlides(data: Record<string, unknown>, body: string, primary?: s
   return slides;
 }
 
+function parseRaces(data: Record<string, unknown>): LocationRace[] {
+  const raw = data.расы ?? data.races;
+  if (!Array.isArray(raw)) return [];
+  const races: LocationRace[] = [];
+  for (const item of raw) {
+    if (typeof item === "string") {
+      const name = item.trim();
+      if (name) races.push({ name, description: "" });
+      continue;
+    }
+    if (!item || typeof item !== "object") continue;
+    const rec = item as Record<string, unknown>;
+    const name = String(rec.имя ?? rec.name ?? "").trim();
+    const description = String(rec.описание ?? rec.description ?? "").trim();
+    if (name) races.push({ name, description });
+  }
+  return races;
+}
+
 function buildIndex(): LoreIndex {
   const root = getVaultRoot();
   const files = walkMarkdown(root);
@@ -429,6 +454,7 @@ function buildIndex(): LoreIndex {
         system: pickFm(data, "система", "system"),
         population: pickFm(data, "популяция", "population") || asString(fm.population),
         kind: pickFm(data, "вид", "location_type", "kind"),
+        parent: pickFm(data, "входит в", "parent"),
         relatedCharacters: pickFm(data, "связанные персонажи", "related_characters"),
         goal: pickFm(data, "цель", "goal"),
         existencePeriod: pickFm(data, "период существования", "existence_period"),
@@ -463,6 +489,7 @@ function buildIndex(): LoreIndex {
       wikiLinks: extractWikiLinks(body),
       portraits,
       abilities,
+      races: parseRaces(data),
       story: inferStoryWorld({
         type,
         sourcePath,

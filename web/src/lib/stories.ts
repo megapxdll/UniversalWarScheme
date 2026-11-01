@@ -1,6 +1,12 @@
 import { getChronology } from "./chronology";
-import { entitiesOf, getLore, type LoreEntity } from "./lore";
+import { entitiesOf, getLore, type LocationRace, type LoreEntity } from "./lore";
 import type { StoryWorld } from "./story-world";
+
+export type LocationNode = {
+  location: LoreEntity;
+  children: LoreEntity[];
+  races: LocationRace[];
+};
 
 export type StoryHub = {
   world: StoryWorld;
@@ -38,6 +44,35 @@ function sortByCanon(entities: LoreEntity[]): LoreEntity[] {
     if (left !== right) return left - right;
     return a.title.localeCompare(b.title, "ru");
   });
+}
+
+function wikiName(value?: string): string {
+  return (value ?? "").replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, "$1").trim();
+}
+
+export function locationTree(world: StoryWorld): LocationNode[] {
+  const lore = getLore();
+  const locations = ofStory("location", world);
+  const ids = new Set(locations.map((location) => location.id));
+  const childrenOf = new Map<string, LoreEntity[]>();
+  const nested = new Set<string>();
+
+  for (const location of locations) {
+    const parent = lore.resolve(wikiName(location.extra.parent));
+    if (!parent || parent.type !== "location" || !ids.has(parent.id) || parent.id === location.id) continue;
+    nested.add(location.id);
+    const list = childrenOf.get(parent.id) ?? [];
+    list.push(location);
+    childrenOf.set(parent.id, list);
+  }
+
+  return locations
+    .filter((location) => !nested.has(location.id))
+    .map((location) => ({
+      location,
+      children: (childrenOf.get(location.id) ?? []).sort((a, b) => a.title.localeCompare(b.title, "ru")),
+      races: location.races,
+    }));
 }
 
 export function ofStory(type: LoreEntity["type"], world: StoryWorld): LoreEntity[] {
