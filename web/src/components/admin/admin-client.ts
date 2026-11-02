@@ -56,10 +56,15 @@ function bindPicker(root: HTMLElement) {
 
   const renderSuggest = () => {
     const q = input.value.trim().toLowerCase();
+    const selected = new Set(chips(root).map((name) => name.toLowerCase()));
+    const isSelected = (entity: CatalogEntity) =>
+      selected.has(entity.title.toLowerCase()) ||
+      entity.names.some((name) => selected.has(name.toLowerCase()));
     const matches = catalog.entities
       .filter((entity) => !types.length || types.includes(entity.type))
+      .filter((entity) => !isSelected(entity))
       .filter((entity) => !q || entity.names.some((name) => name.toLowerCase().includes(q)))
-      .slice(0, 8);
+      .slice(0, 12);
     suggest.innerHTML = "";
     if (!q && !matches.length) {
       suggest.classList.add("hidden");
@@ -77,7 +82,17 @@ function bindPicker(root: HTMLElement) {
       });
       suggest.append(btn);
     }
-    if (q && !matches.some((entity) => entity.title.toLowerCase() === q)) {
+    if (
+      q &&
+      !selected.has(q) &&
+      !matches.some((entity) => entity.title.toLowerCase() === q) &&
+      !catalog.entities.some(
+        (entity) =>
+          (!types.length || types.includes(entity.type)) &&
+          isSelected(entity) &&
+          entity.names.some((name) => name.toLowerCase() === q),
+      )
+    ) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "block w-full px-3 py-2 text-left text-sm text-gold hover:bg-panel";
